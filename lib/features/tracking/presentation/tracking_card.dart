@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -29,9 +30,12 @@ class TrackingCard extends ConsumerWidget {
     final lng = tracking.lastLng ?? lastLng;
 
     final message = switch (tracking.issue) {
-      LocationIssue.serviceDisabled => strings.t('gps.off'),
-      LocationIssue.denied => strings.t('gps.denied'),
-      LocationIssue.deniedForever => strings.t('gps.denied_forever'),
+      LocationIssue.serviceDisabled =>
+        strings.t(kIsWeb ? 'gps.off_web' : 'gps.off'),
+      LocationIssue.denied =>
+        strings.t(kIsWeb ? 'gps.denied_web' : 'gps.denied'),
+      LocationIssue.deniedForever =>
+        strings.t(kIsWeb ? 'gps.denied_forever_web' : 'gps.denied_forever'),
       LocationIssue.failed => strings.t('gps.failed'),
       LocationIssue.ready => switch (tracking.ui) {
           TrackingUiStatus.shared => strings.t('gps.shared'),
@@ -76,21 +80,15 @@ class TrackingCard extends ConsumerWidget {
             onPressed: controller.share,
           ),
           if (tracking.issue == LocationIssue.deniedForever ||
-              tracking.issue == LocationIssue.denied) ...[
+              tracking.issue == LocationIssue.denied ||
+              tracking.issue == LocationIssue.serviceDisabled) ...[
             const SizedBox(height: 10),
             AppButton(
-              label: strings.t('gps.open_settings'),
+              label: strings.t(
+                kIsWeb ? 'gps.allow_location' : 'gps.open_settings',
+              ),
               tone: AppButtonTone.ghost,
-              onPressed: () => ref.read(locationServiceProvider).openSettings(),
-            ),
-          ],
-          if (tracking.issue == LocationIssue.serviceDisabled) ...[
-            const SizedBox(height: 10),
-            AppButton(
-              label: strings.t('gps.open_settings'),
-              tone: AppButtonTone.ghost,
-              onPressed: () =>
-                  ref.read(locationServiceProvider).openLocationSettings(),
+              onPressed: controller.resolveIssue,
             ),
           ],
         ],

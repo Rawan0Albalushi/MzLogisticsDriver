@@ -84,11 +84,29 @@ class LocationService {
     };
   }
 
-  Future<bool> openSettings() {
-    return Geolocator.openAppSettings();
+  Future<bool> openSettings() async {
+    try {
+      return await Geolocator.openAppSettings();
+    } on UnsupportedError {
+      return _requestBrowserPermission();
+    }
   }
 
-  Future<bool> openLocationSettings() {
-    return Geolocator.openLocationSettings();
+  Future<bool> openLocationSettings() async {
+    try {
+      return await Geolocator.openLocationSettings();
+    } on UnsupportedError {
+      return _requestBrowserPermission();
+    }
+  }
+
+  Future<bool> _requestBrowserPermission() async {
+    try {
+      final permission = await Geolocator.requestPermission();
+      return permission == LocationPermission.always ||
+          permission == LocationPermission.whileInUse;
+    } catch (_) {
+      return false;
+    }
   }
 }

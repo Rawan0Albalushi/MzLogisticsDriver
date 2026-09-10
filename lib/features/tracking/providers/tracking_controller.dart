@@ -62,6 +62,16 @@ class TrackingController extends AutoDisposeFamilyNotifier<TrackingState, int> {
     }
   }
 
+  Future<void> resolveIssue() async {
+    final service = ref.read(locationServiceProvider);
+    if (state.issue == LocationIssue.serviceDisabled) {
+      await service.openLocationSettings();
+    } else {
+      await service.openSettings();
+    }
+    await _inspect();
+  }
+
   Future<void> share() async {
     state = state.copyWith(ui: TrackingUiStatus.sharing);
     final check = await ref.read(locationServiceProvider).currentFix();
