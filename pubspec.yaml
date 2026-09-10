@@ -1,0 +1,34 @@
+name: mz_logistics_driver_app
+description: MZ Logistics driver app for assigned trip execution.
+publish_to: "none"
+
+version: 1.0.0+1
+
+environment:
+  sdk: ^3.13.2
+
+dependencies:
+  flutter:
+    sdk: flutter
+  flutter_localizations:
+    sdk: flutter
+  cupertino_icons: ^1.0.8
+  intl: any
+  flutter_riverpod: ^2.6.1
+  go_router: ^16.2.4
+  dio: ^5.9.0
+  flutter_secure_storage: ^9.2.4
+  shared_preferences: ^2.5.3
+  google_fonts: ^6.3.2
+  geolocator: ^14.0.2
+  image_picker: ^1.2.0
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^6.0.0
+
+flutter:
+  uses-material-design: true
+  assets:
+    - assets/i18n/

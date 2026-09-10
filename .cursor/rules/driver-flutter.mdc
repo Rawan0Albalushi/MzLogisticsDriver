@@ -1,0 +1,113 @@
+---
+description: Flutter Driver Application rules for MZ Logistics
+alwaysApply: true
+---
+
+# MZ Logistics Driver App - Flutter Rules
+
+Follow the global MZ Logistics rules.
+
+This is a mobile-first application for drivers.
+
+Do not design it like an admin dashboard.
+
+## Main Goal
+
+The driver must be able to complete assigned Trips with minimum complexity.
+
+## Main Features
+
+Focus on:
+
+- Login
+- Assigned Trips
+- Trip Details
+- Pickup Location
+- Delivery Location
+- Cargo Details
+- Trip Status Updates
+- GPS Tracking
+- Proof of Delivery
+- Notifications
+- Profile
+
+## Trip Flow
+
+Respect the defined trip flow:
+
+Assigned
+→ Arrived at Pickup
+→ Loaded
+→ In Transit
+→ Arrived
+→ Delivered
+→ Completed
+
+Do not allow invalid state transitions.
+
+Backend remains the source of truth.
+
+## UX
+
+Driver UI must be:
+
+- Extremely clear.
+- Simple.
+- Mobile-first.
+- Large touch targets.
+- Easy to use quickly.
+- Low cognitive load.
+
+The current Trip must be obvious.
+
+Primary action must be visually clear.
+
+Avoid complicated menus.
+
+Avoid dense dashboards.
+
+## Safety
+
+Do not design interactions that encourage drivers to use complex interfaces while driving.
+
+Actions should be simple and require minimal interaction.
+
+## GPS
+
+Tracking functionality must:
+
+- Handle permission states.
+- Handle denied permissions.
+- Handle GPS disabled state.
+- Handle connectivity loss.
+- Handle resumed connectivity.
+
+Do not repeatedly request permission unnecessarily.
+
+## Proof of Delivery
+
+POD flow must support the business requirements, such as:
+
+- Receiver confirmation.
+- OTP where required.
+- Delivery photos.
+- Received quantity.
+- Proof of Delivery document.
+- Date/location.
+
+## Offline / Network Handling
+
+Driver may work in weak network areas.
+
+Provide clear feedback when:
+- Offline.
+- Upload pending.
+- Sync failed.
+
+Avoid losing trip updates where a safe retry mechanism can be used.
+
+## Localization
+
+Arabic RTL and English LTR are mandatory.
+
+Keep driver terminology simple and consistent.
