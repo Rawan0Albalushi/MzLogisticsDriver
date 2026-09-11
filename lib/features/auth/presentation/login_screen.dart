@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import '../../../core/api/api_exception.dart';
 import '../../../core/config/app_config.dart';
 import '../../../core/l10n/locale_controller.dart';
 import '../../../core/theme/app_colors.dart';
@@ -39,6 +38,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
   }
 
   Future<void> _submit() async {
+    if (_submitting) return;
     final strings = ref.read(stringsProvider);
     setState(() {
       _submitting = true;
@@ -50,11 +50,12 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
             _password.text,
           );
     } catch (error) {
+      if (!mounted) return;
       setState(() {
         _error = errorMessageFor(
           error,
           strings.t('state.offline'),
-          error is ApiException ? strings.t('login.failed') : strings.t('login.failed'),
+          strings.t('login.failed'),
         );
       });
     } finally {

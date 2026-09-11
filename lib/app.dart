@@ -16,7 +16,9 @@ class MzDriverApp extends ConsumerWidget {
     final localeState = ref.watch(localeControllerProvider);
     final auth = ref.watch(authControllerProvider);
 
-    if (auth.isLoading) {
+    // Only the first session restore should replace the tree. Login loading
+    // must keep MaterialApp.router mounted or the login screen is disposed.
+    if (auth.isLoading && !auth.hasValue) {
       return MaterialApp(
         debugShowCheckedModeBanner: false,
         locale: localeState.locale,

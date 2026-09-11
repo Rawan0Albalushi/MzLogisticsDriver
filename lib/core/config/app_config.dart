@@ -1,7 +1,25 @@
 class AppConfig {
   const AppConfig._();
 
-  static const String apiBaseUrl = 'http://127.0.0.1:8000/api/v1';
+  static const String _apiBaseUrlFromEnv = String.fromEnvironment('API_BASE_URL');
+  static const String devLanHost = String.fromEnvironment('DEV_LAN_HOST');
+  static const int apiPort = 8000;
+
+  /// Optional PC Wi-Fi IPv4 for a physical phone on the same network.
+  /// USB debugging does not need this: run `adb reverse tcp:8000 tcp:8000`.
+  static String get apiHost {
+    if (_apiBaseUrlFromEnv.isNotEmpty) {
+      return Uri.parse(_apiBaseUrlFromEnv).host;
+    }
+    if (devLanHost.isNotEmpty) return devLanHost;
+    return '192.168.1.125';
+  }
+
+  static String get apiBaseUrl {
+    if (_apiBaseUrlFromEnv.isNotEmpty) return _apiBaseUrlFromEnv;
+    return 'http://$apiHost:$apiPort/api/v1';
+  }
+
   static const String demoEmail = 'driver@omanhaulers.om';
   static const String demoPassword = 'Password123!';
   static const Duration connectTimeout = Duration(seconds: 20);
