@@ -206,23 +206,27 @@ class _OtpCard extends StatelessWidget {
         children: [
           Text(
             strings.t('trip.otp'),
-            style: const TextStyle(color: Color(0xFFC5D0D6)),
+            style: const TextStyle(color: AppColors.navyMuted),
           ),
           const SizedBox(height: 8),
-          Text(
-            code,
-            style: const TextStyle(
-              color: AppColors.amber,
-              fontSize: 36,
-              fontWeight: FontWeight.w800,
-              letterSpacing: 6,
+          ShaderMask(
+            blendMode: BlendMode.srcIn,
+            shaderCallback: (bounds) => AppColors.accentGradient.createShader(bounds),
+            child: Text(
+              code,
+              style: const TextStyle(
+                color: AppColors.white,
+                fontSize: 36,
+                fontWeight: FontWeight.w800,
+                letterSpacing: 6,
+              ),
             ),
           ),
           const SizedBox(height: 8),
           Text(
             strings.t('trip.otp_hint'),
             textAlign: TextAlign.center,
-            style: const TextStyle(color: Color(0xFFC5D0D6), height: 1.4),
+            style: const TextStyle(color: AppColors.navyMuted, height: 1.4),
           ),
         ],
       ),
@@ -321,7 +325,8 @@ class _FlowDots extends StatelessWidget {
             child: Container(
               height: 6,
               decoration: BoxDecoration(
-                color: i <= current ? AppColors.amber : AppColors.line,
+                gradient: i <= current ? AppColors.accentGradient : null,
+                color: i <= current ? null : AppColors.line,
                 borderRadius: BorderRadius.circular(99),
               ),
             ),

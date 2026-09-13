@@ -24,7 +24,7 @@ class TripSummaryCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final background = emphasized ? AppColors.navy : AppColors.white;
     final titleColor = emphasized ? AppColors.white : AppColors.ink;
-    final muted = emphasized ? const Color(0xFFC5D0D6) : AppColors.muted;
+    final muted = emphasized ? AppColors.navyMuted : AppColors.muted;
 
     return Material(
       color: background,

@@ -89,12 +89,25 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                     ),
                   ),
                   const SizedBox(height: 4),
-                  Text(
-                    strings.t('app.role'),
-                    style: const TextStyle(
-                      color: AppColors.amber,
-                      fontSize: 18,
-                      fontWeight: FontWeight.w600,
+                  ShaderMask(
+                    blendMode: BlendMode.srcIn,
+                    shaderCallback: (bounds) => AppColors.accentGradient.createShader(bounds),
+                    child: Text(
+                      strings.t('app.role'),
+                      style: const TextStyle(
+                        color: AppColors.white,
+                        fontSize: 18,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 12),
+                  Container(
+                    width: 48,
+                    height: 3,
+                    decoration: BoxDecoration(
+                      gradient: AppColors.accentGradient,
+                      borderRadius: BorderRadius.circular(20),
                     ),
                   ),
                   const SizedBox(height: AppSpacing.xl),

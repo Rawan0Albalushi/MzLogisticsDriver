@@ -29,8 +29,8 @@ class ProfileIdentityHeader extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          const ColoredBox(
-            color: AppColors.amber,
+          const DecoratedBox(
+            decoration: BoxDecoration(gradient: AppColors.accentGradient),
             child: SizedBox(height: 3),
           ),
           Padding(
