@@ -48,6 +48,7 @@
   "action.completed": "إكمال الرحلة",
   "action.record_pod": "تسجيل إثبات التسليم",
   "action.retry": "إعادة المحاولة",
+  "action.navigate": "التوجيه عبر خرائط جوجل",
   "action.share_location": "مشاركة موقعي",
   "action.updating": "جاري التحديث…",
   "action.sharing": "جاري المشاركة…",

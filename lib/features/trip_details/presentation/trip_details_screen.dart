@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 
 import '../../../core/l10n/app_strings.dart';
 import '../../../core/l10n/locale_controller.dart';
+import '../../../core/maps/google_maps_links.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../core/theme/app_spacing.dart';
 import '../../../shared/models/trip.dart';
@@ -109,14 +110,20 @@ class _TripBody extends StatelessWidget {
           ],
         ),
         const SizedBox(height: 12),
-        _InfoCard(
+        _LocationCard(
           title: strings.t('trip.pickup'),
-          lines: [trip.pickupLabel],
+          address: trip.pickupLabel,
+          lat: trip.pickupLat,
+          lng: trip.pickupLng,
+          strings: strings,
         ),
         const SizedBox(height: 12),
-        _InfoCard(
+        _LocationCard(
           title: strings.t('trip.delivery'),
-          lines: [trip.deliveryLabel],
+          address: trip.deliveryLabel,
+          lat: trip.deliveryLat,
+          lng: trip.deliveryLng,
+          strings: strings,
         ),
         const SizedBox(height: 12),
         _InfoCard(
@@ -223,11 +230,47 @@ class _OtpCard extends StatelessWidget {
   }
 }
 
+class _LocationCard extends StatelessWidget {
+  const _LocationCard({
+    required this.title,
+    required this.address,
+    required this.strings,
+    this.lat,
+    this.lng,
+  });
+
+  final String title;
+  final String address;
+  final AppStrings strings;
+  final double? lat;
+  final double? lng;
+
+  @override
+  Widget build(BuildContext context) {
+    final hasCoords = lat != null && lng != null;
+    return _InfoCard(
+      title: title,
+      lines: [
+        address,
+        if (hasCoords) GoogleMapsLinks.format(lat, lng),
+      ],
+      action: hasCoords
+          ? TextButton.icon(
+              onPressed: () => GoogleMapsLinks.open(lat: lat!, lng: lng!, navigate: true),
+              icon: const Icon(Icons.navigation_outlined),
+              label: Text(strings.t('action.navigate')),
+            )
+          : null,
+    );
+  }
+}
+
 class _InfoCard extends StatelessWidget {
-  const _InfoCard({required this.title, required this.lines});
+  const _InfoCard({required this.title, required this.lines, this.action});
 
   final String title;
   final List<String?> lines;
+  final Widget? action;
 
   @override
   Widget build(BuildContext context) {
@@ -256,6 +299,7 @@ class _InfoCard extends StatelessWidget {
             visible.isEmpty ? '—' : visible.join('\n'),
             style: const TextStyle(fontSize: 16, height: 1.4),
           ),
+          ?action,
         ],
       ),
     );

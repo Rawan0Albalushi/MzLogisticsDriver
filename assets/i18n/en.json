@@ -48,6 +48,7 @@
   "action.completed": "Complete trip",
   "action.record_pod": "Record proof of delivery",
   "action.retry": "Try again",
+  "action.navigate": "Navigate in Google Maps",
   "action.share_location": "Share my location",
   "action.updating": "Updating…",
   "action.sharing": "Sharing…",
