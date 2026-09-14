@@ -5,7 +5,9 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../core/l10n/locale_controller.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../core/theme/app_spacing.dart';
+import '../../../core/theme/app_text.dart';
 import '../../../shared/widgets/app_button.dart';
+import '../../../shared/widgets/icon_bubble.dart';
 import '../data/location_service.dart';
 import '../providers/tracking_controller.dart';
 
@@ -45,6 +47,8 @@ class TrackingCard extends ConsumerWidget {
         },
     };
 
+    final shared = tracking.ui == TrackingUiStatus.shared;
+
     return Container(
       width: double.infinity,
       padding: const EdgeInsets.all(AppSpacing.lg),
@@ -56,17 +60,39 @@ class TrackingCard extends ConsumerWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(
-            strings.t('gps.title'),
-            style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 16),
+          Row(
+            children: [
+              IconBubble(
+                icon: shared
+                    ? Icons.my_location_rounded
+                    : Icons.location_searching_rounded,
+                color: shared ? AppColors.success : AppColors.primary,
+              ),
+              const SizedBox(width: 10),
+              Expanded(
+                child: Text(
+                  strings.t('gps.title'),
+                  style: AppText.title,
+                ),
+              ),
+              if (shared)
+                Container(
+                  width: 10,
+                  height: 10,
+                  decoration: const BoxDecoration(
+                    color: AppColors.success,
+                    shape: BoxShape.circle,
+                  ),
+                ),
+            ],
           ),
-          const SizedBox(height: 8),
-          Text(message, style: const TextStyle(color: AppColors.muted, height: 1.4)),
+          const SizedBox(height: 10),
+          Text(message, style: AppText.bodyMuted),
           if (lat != null && lng != null) ...[
             const SizedBox(height: 8),
             Text(
               '${strings.t('gps.last')}: ${lat.toStringAsFixed(5)}, ${lng.toStringAsFixed(5)}',
-              style: const TextStyle(fontSize: 13, color: AppColors.muted),
+              style: AppText.label,
             ),
           ],
           const SizedBox(height: AppSpacing.md),
@@ -88,6 +114,7 @@ class TrackingCard extends ConsumerWidget {
                 kIsWeb ? 'gps.allow_location' : 'gps.open_settings',
               ),
               tone: AppButtonTone.ghost,
+              icon: Icons.settings_outlined,
               onPressed: controller.resolveIssue,
             ),
           ],

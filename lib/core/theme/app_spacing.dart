@@ -8,5 +8,7 @@ class AppSpacing {
   static const double xl = 28;
   static const double xxl = 36;
   static const double touch = 56;
-  static const double radius = 12;
+  static const double radius = 16;
+  static const double radiusSm = 12;
+  static const double radiusLg = 22;
 }

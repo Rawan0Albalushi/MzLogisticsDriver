@@ -7,6 +7,7 @@ import 'core/router/app_router.dart';
 import 'core/theme/app_colors.dart';
 import 'core/theme/app_theme.dart';
 import 'features/auth/providers/auth_controller.dart';
+import 'shared/widgets/brand_mark.dart';
 
 class MzDriverApp extends ConsumerWidget {
   const MzDriverApp({super.key});
@@ -29,10 +30,20 @@ class MzDriverApp extends ConsumerWidget {
           GlobalCupertinoLocalizations.delegate,
         ],
         theme: AppTheme.light(localeState.locale),
-        home: const Scaffold(
-          backgroundColor: AppColors.navy,
+        home: Scaffold(
+          backgroundColor: AppColors.surface,
           body: Center(
-            child: CircularProgressIndicator(color: AppColors.amber),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                const BrandMark(size: 64, pulse: true),
+                const SizedBox(height: 18),
+                const CircularProgressIndicator(
+                  color: AppColors.primary,
+                  strokeWidth: 3,
+                ),
+              ],
+            ),
           ),
         ),
       );

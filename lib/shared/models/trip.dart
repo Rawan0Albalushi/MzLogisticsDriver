@@ -23,6 +23,8 @@ class Trip {
     this.currentLat,
     this.currentLng,
     this.etaAt,
+    this.assignedAt,
+    this.createdAt,
     this.otpCode,
     this.job,
     this.truck,
@@ -46,6 +48,8 @@ class Trip {
   final double? currentLat;
   final double? currentLng;
   final String? etaAt;
+  final String? assignedAt;
+  final String? createdAt;
   final String? otpCode;
   final TransportJob? job;
   final Truck? truck;
@@ -56,6 +60,8 @@ class Trip {
 
   String get deliveryLabel =>
       [deliveryAddress, deliveryCity].whereType<String>().join(', ');
+
+  String? get tripDateRaw => assignedAt ?? createdAt;
 
   factory Trip.fromJson(Map<String, dynamic> json) {
     return Trip(
@@ -76,6 +82,8 @@ class Trip {
       currentLat: readDouble(json['current_lat']),
       currentLng: readDouble(json['current_lng']),
       etaAt: readString(json['eta_at']),
+      assignedAt: readString(json['assigned_at']),
+      createdAt: readString(json['created_at']),
       otpCode: readString(json['otp_code']),
       job: readMap(json['job']) != null
           ? TransportJob.fromJson(readMap(json['job'])!)

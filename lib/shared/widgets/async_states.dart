@@ -3,7 +3,9 @@ import 'package:flutter/material.dart';
 import '../../core/api/api_exception.dart';
 import '../../core/theme/app_colors.dart';
 import '../../core/theme/app_spacing.dart';
+import '../../core/theme/app_text.dart';
 import 'app_button.dart';
+import 'icon_bubble.dart';
 
 class LoadingState extends StatelessWidget {
   const LoadingState({super.key, required this.message});
@@ -16,9 +18,13 @@ class LoadingState extends StatelessWidget {
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
-          const CircularProgressIndicator(color: AppColors.navy),
+          const SizedBox(
+            width: 32,
+            height: 32,
+            child: CircularProgressIndicator(strokeWidth: 3),
+          ),
           const SizedBox(height: AppSpacing.md),
-          Text(message, style: const TextStyle(color: AppColors.muted)),
+          Text(message, style: AppText.bodyMuted),
         ],
       ),
     );
@@ -31,42 +37,44 @@ class EmptyState extends StatelessWidget {
     required this.title,
     this.subtitle,
     this.icon = Icons.local_shipping_outlined,
+    this.compact = false,
   });
 
   final String title;
   final String? subtitle;
   final IconData icon;
+  final bool compact;
 
   @override
   Widget build(BuildContext context) {
-    return Center(
-      child: Padding(
-        padding: const EdgeInsets.all(AppSpacing.xl),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Icon(icon, size: 42, color: AppColors.muted),
-            const SizedBox(height: AppSpacing.md),
+    final content = Padding(
+      padding: EdgeInsets.all(compact ? AppSpacing.md : AppSpacing.xl),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          IconBubble(
+            icon: icon,
+            size: compact ? 56 : 64,
+            iconSize: compact ? 26 : 30,
+          ),
+          const SizedBox(height: AppSpacing.md),
+          Text(
+            title,
+            textAlign: TextAlign.center,
+            style: AppText.title,
+          ),
+          if (subtitle != null) ...[
+            const SizedBox(height: AppSpacing.sm),
             Text(
-              title,
+              subtitle!,
               textAlign: TextAlign.center,
-              style: const TextStyle(
-                fontSize: 18,
-                fontWeight: FontWeight.w700,
-              ),
+              style: AppText.bodyMuted,
             ),
-            if (subtitle != null) ...[
-              const SizedBox(height: AppSpacing.sm),
-              Text(
-                subtitle!,
-                textAlign: TextAlign.center,
-                style: const TextStyle(color: AppColors.muted, height: 1.4),
-              ),
-            ],
           ],
-        ),
+        ],
       ),
     );
+    return compact ? content : Center(child: content);
   }
 }
 
@@ -90,18 +98,23 @@ class ErrorState extends StatelessWidget {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            const Icon(Icons.wifi_off_rounded, size: 40, color: AppColors.danger),
+            const IconBubble(
+              icon: Icons.wifi_off_rounded,
+              color: AppColors.danger,
+              size: 64,
+              iconSize: 30,
+            ),
             const SizedBox(height: AppSpacing.md),
             Text(
               message,
               textAlign: TextAlign.center,
-              style: const TextStyle(fontSize: 16, height: 1.4),
+              style: AppText.body,
             ),
             const SizedBox(height: AppSpacing.lg),
             AppButton(
               label: retryLabel,
               onPressed: onRetry,
-              tone: AppButtonTone.navy,
+              icon: Icons.refresh_rounded,
             ),
           ],
         ),
@@ -119,11 +132,19 @@ class OfflineBanner extends StatelessWidget {
   Widget build(BuildContext context) {
     return Container(
       width: double.infinity,
-      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
       color: AppColors.danger,
-      child: Text(
-        message,
-        style: const TextStyle(color: AppColors.white, fontWeight: FontWeight.w600),
+      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+      child: Row(
+        children: [
+          const Icon(Icons.wifi_off_rounded, color: AppColors.white, size: 18),
+          const SizedBox(width: 8),
+          Expanded(
+            child: Text(
+              message,
+              style: AppText.label.copyWith(color: AppColors.white),
+            ),
+          ),
+        ],
       ),
     );
   }
@@ -133,7 +154,9 @@ String errorMessageFor(Object error, String offline, String generic) {
   if (error is ApiException && error.isOffline) {
     return offline;
   }
-  if (error is ApiException && error.message != 'request_failed' && error.message != 'offline') {
+  if (error is ApiException &&
+      error.message != 'request_failed' &&
+      error.message != 'offline') {
     return error.message;
   }
   return generic;

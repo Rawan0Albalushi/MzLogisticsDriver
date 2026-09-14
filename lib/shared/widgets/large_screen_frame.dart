@@ -15,7 +15,7 @@ class LargeScreenFrame extends StatelessWidget {
     }
 
     return ColoredBox(
-      color: AppColors.navy,
+      color: AppColors.surfaceAlt,
       child: Center(
         child: Padding(
           padding: const EdgeInsets.symmetric(vertical: 20, horizontal: 16),
@@ -23,9 +23,9 @@ class LargeScreenFrame extends StatelessWidget {
             constraints: const BoxConstraints(maxWidth: Breakpoints.frameMaxWidth),
             child: Material(
               color: AppColors.surface,
-              elevation: 16,
-              shadowColor: Colors.black26,
-              borderRadius: BorderRadius.circular(20),
+              elevation: 8,
+              shadowColor: AppColors.primary.withValues(alpha: 0.12),
+              borderRadius: BorderRadius.circular(24),
               clipBehavior: Clip.antiAlias,
               child: child,
             ),

@@ -6,6 +6,7 @@ import '../../../core/l10n/locale_controller.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../core/theme/app_spacing.dart';
 import '../../../shared/widgets/async_states.dart';
+import '../../../shared/widgets/page_header.dart';
 import '../../auth/data/auth_repository.dart';
 import '../../auth/providers/auth_controller.dart';
 import 'widgets/profile_sections.dart';
@@ -20,54 +21,59 @@ class ProfileScreen extends ConsumerWidget {
     final user = ref.watch(authControllerProvider).valueOrNull;
 
     return Scaffold(
-      appBar: AppBar(title: Text(strings.t('profile.title'))),
-      body: user == null
-          ? LoadingState(message: strings.t('state.loading'))
-          : RefreshIndicator(
-              color: AppColors.navy,
-              onRefresh: () =>
-                  ref.read(authControllerProvider.notifier).refreshMe(),
-              child: ListView(
-                physics: const AlwaysScrollableScrollPhysics(),
-                padding: const EdgeInsets.all(AppSpacing.lg),
-                children: [
-                  ProfileIdentityHeader(
-                    strings: strings,
-                    user: user,
-                    company: user.organization?.displayName(
-                      locale.languageCode,
+      body: Column(
+        children: [
+          PageHeader(
+            title: strings.t('profile.title'),
+          ),
+          Expanded(
+            child: user == null
+                ? LoadingState(message: strings.t('state.loading'))
+                : RefreshIndicator(
+                    color: AppColors.primary,
+                    onRefresh: () =>
+                        ref.read(authControllerProvider.notifier).refreshMe(),
+                    child: ListView(
+                      physics: const AlwaysScrollableScrollPhysics(),
+                      padding: const EdgeInsets.all(AppSpacing.lg),
+                      children: [
+                        ProfileIdentityHeader(
+                          strings: strings,
+                          user: user,
+                          company: user.organization?.displayName(
+                            locale.languageCode,
+                          ),
+                        ),
+                        const SizedBox(height: 22),
+                        ProfileDetailsCard(
+                          strings: strings,
+                          user: user,
+                          locale: locale.languageCode,
+                        ),
+                        const SizedBox(height: 22),
+                        ProfileCompanyCard(
+                          strings: strings,
+                          company: user.organization?.displayName(
+                            locale.languageCode,
+                          ),
+                          city: user.organization?.city,
+                          phone: user.organization?.phone,
+                        ),
+                        const SizedBox(height: 22),
+                        ProfileSettingsCard(
+                          strings: strings,
+                          selectedLanguage: locale.languageCode,
+                          onLanguageSelected: (code) =>
+                              _changeLanguage(ref, code),
+                          onLogout: () => _logout(context, ref, strings),
+                        ),
+                        const SizedBox(height: 8),
+                      ],
                     ),
                   ),
-                  const SizedBox(height: 14),
-                  ProfileDetailsCard(
-                    strings: strings,
-                    user: user,
-                    locale: locale.languageCode,
-                  ),
-                  const SizedBox(height: 14),
-                  ProfileCompanyCard(
-                    strings: strings,
-                    company: user.organization?.displayName(
-                      locale.languageCode,
-                    ),
-                    city: user.organization?.city,
-                    phone: user.organization?.phone,
-                  ),
-                  const SizedBox(height: 14),
-                  ProfileLanguageCard(
-                    strings: strings,
-                    selected: locale.languageCode,
-                    onSelected: (code) => _changeLanguage(ref, code),
-                  ),
-                  const SizedBox(height: 14),
-                  ProfileLogoutCard(
-                    strings: strings,
-                    onLogout: () => _logout(context, ref, strings),
-                  ),
-                  const SizedBox(height: 8),
-                ],
-              ),
-            ),
+          ),
+        ],
+      ),
     );
   }
 
@@ -99,9 +105,12 @@ class ProfileScreen extends ConsumerWidget {
               onPressed: () => Navigator.of(context).pop(false),
               child: Text(strings.t('common.cancel')),
             ),
-            TextButton(
+            FilledButton(
               onPressed: () => Navigator.of(context).pop(true),
-              style: TextButton.styleFrom(foregroundColor: AppColors.danger),
+              style: FilledButton.styleFrom(
+                backgroundColor: AppColors.danger,
+                foregroundColor: AppColors.white,
+              ),
               child: Text(strings.t('profile.logout')),
             ),
           ],

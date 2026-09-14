@@ -3,8 +3,8 @@ import 'package:flutter/material.dart';
 import '../../../../core/l10n/app_strings.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_spacing.dart';
+import '../../../../core/theme/app_text.dart';
 import '../../../../shared/models/user.dart';
-import '../../../../shared/widgets/app_button.dart';
 import '../profile_helpers.dart';
 
 class ProfileIdentityHeader extends StatelessWidget {
@@ -21,129 +21,74 @@ class ProfileIdentityHeader extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final email = user.email.trim();
     final status = user.driverProfile?.status;
+    final name = user.name.isEmpty ? strings.t('profile.title') : user.name;
 
-    return Material(
-      color: AppColors.navy,
-      borderRadius: BorderRadius.circular(AppSpacing.radius),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          const DecoratedBox(
-            decoration: BoxDecoration(gradient: AppColors.accentGradient),
-            child: SizedBox(height: 3),
-          ),
-          Padding(
-            padding: const EdgeInsets.fromLTRB(18, 18, 18, 18),
-            child: Row(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                _Avatar(name: user.name),
-                const SizedBox(width: 14),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        user.name.isEmpty
-                            ? strings.t('profile.title')
-                            : user.name,
-                        maxLines: 2,
-                        overflow: TextOverflow.ellipsis,
-                        style: const TextStyle(
-                          color: AppColors.white,
-                          fontSize: 22,
-                          fontWeight: FontWeight.w700,
-                          height: 1.25,
-                        ),
-                      ),
-                      const SizedBox(height: 4),
-                      Text(
-                        strings.t('app.role'),
-                        style: const TextStyle(
-                          color: AppColors.amber,
-                          fontWeight: FontWeight.w700,
-                          fontSize: 14,
-                        ),
-                      ),
-                      if (company != null && company!.isNotEmpty) ...[
-                        const SizedBox(height: 4),
-                        Text(
-                          company!,
-                          maxLines: 2,
-                          overflow: TextOverflow.ellipsis,
-                          style: TextStyle(
-                            color: AppColors.white.withValues(alpha: 0.72),
-                            fontSize: 14,
-                            height: 1.3,
-                          ),
-                        ),
-                      ],
-                      if (status != null && status.isNotEmpty) ...[
-                        const SizedBox(height: 10),
-                        _StatusChip(label: driverStatusLabel(strings, status)),
-                      ],
-                    ],
+    return _GroupCard(
+      child: Padding(
+        padding: const EdgeInsets.fromLTRB(16, 16, 10, 16),
+        child: Row(
+          children: [
+            _Avatar(name: name),
+            const SizedBox(width: 14),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  FittedBox(
+                    fit: BoxFit.scaleDown,
+                    alignment: AlignmentDirectional.centerStart,
+                    child: Text(name, maxLines: 1, style: AppText.title),
                   ),
-                ),
-              ],
+                  if (email.isNotEmpty) ...[
+                    const SizedBox(height: 3),
+                    FittedBox(
+                      fit: BoxFit.scaleDown,
+                      alignment: AlignmentDirectional.centerStart,
+                      child: Text(
+                        email,
+                        maxLines: 1,
+                        textDirection: TextDirection.ltr,
+                        style: AppText.label,
+                      ),
+                    ),
+                  ],
+                  if (company != null && company!.isNotEmpty) ...[
+                    const SizedBox(height: 2),
+                    FittedBox(
+                      fit: BoxFit.scaleDown,
+                      alignment: AlignmentDirectional.centerStart,
+                      child: Text(
+                        company!,
+                        maxLines: 1,
+                        style: AppText.caption,
+                      ),
+                    ),
+                  ],
+                  const SizedBox(height: 4),
+                  Text(
+                    [
+                      strings.t('app.role'),
+                      if (status != null && status.isNotEmpty)
+                        driverStatusLabel(strings, status),
+                    ].join(' · '),
+                    style: AppText.caption.copyWith(color: AppColors.primary),
+                  ),
+                ],
+              ),
             ),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-class _Avatar extends StatelessWidget {
-  const _Avatar({required this.name});
-
-  final String name;
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      width: 64,
-      height: 64,
-      alignment: Alignment.center,
-      decoration: BoxDecoration(
-        color: AppColors.white.withValues(alpha: 0.1),
-        shape: BoxShape.circle,
-        border: Border.all(color: AppColors.amber, width: 2),
-      ),
-      child: Text(
-        initialsFor(name),
-        style: const TextStyle(
-          color: AppColors.white,
-          fontSize: 22,
-          fontWeight: FontWeight.w700,
-          height: 1,
-        ),
-      ),
-    );
-  }
-}
-
-class _StatusChip extends StatelessWidget {
-  const _StatusChip({required this.label});
-
-  final String label;
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
-      decoration: BoxDecoration(
-        color: AppColors.white.withValues(alpha: 0.12),
-        borderRadius: BorderRadius.circular(8),
-        border: Border.all(color: AppColors.white.withValues(alpha: 0.24)),
-      ),
-      child: Text(
-        label,
-        style: const TextStyle(
-          color: AppColors.white,
-          fontWeight: FontWeight.w700,
-          fontSize: 12,
+            if (email.isNotEmpty)
+              IconButton(
+                tooltip: strings.t('profile.copy'),
+                onPressed: () => copyProfileValue(context, strings, email),
+                icon: const Icon(
+                  Icons.copy_outlined,
+                  color: AppColors.muted,
+                  size: 20,
+                ),
+              ),
+          ],
         ),
       ),
     );
@@ -164,69 +109,52 @@ class ProfileDetailsCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final email = user.email.trim();
     final phone = user.phone?.trim() ?? '';
     final license = user.driverProfile?.licenseNumber?.trim() ?? '';
     final expiresRaw = user.driverProfile?.licenseExpiresAt;
     final expires = formatLicenseDate(expiresRaw, locale);
     final freshness = licenseFreshness(expiresRaw);
 
-    return _ProfileCard(
-      icon: Icons.badge_outlined,
+    return _SettingsSection(
       title: strings.t('profile.details'),
-      child: Column(
-        children: [
-          _InfoTile(
-            strings: strings,
-            icon: Icons.mail_outline,
-            label: strings.t('profile.email'),
-            value: displayOrDash(strings, email),
-            copyable: email.isNotEmpty,
-            ltr: email.isNotEmpty,
-          ),
-          const Divider(height: 1),
-          _InfoTile(
-            strings: strings,
-            icon: Icons.phone_outlined,
-            label: strings.t('profile.phone'),
-            value: displayOrDash(strings, phone),
-            copyable: phone.isNotEmpty,
-            ltr: phone.isNotEmpty,
-          ),
-          const Divider(height: 1),
-          _InfoTile(
-            strings: strings,
-            icon: Icons.credit_card_outlined,
-            label: strings.t('profile.license'),
-            value: displayOrDash(strings, license),
-            copyable: license.isNotEmpty,
-            ltr: license.isNotEmpty,
-          ),
-          const Divider(height: 1),
-          _InfoTile(
-            strings: strings,
-            icon: Icons.event_outlined,
-            label: strings.t('profile.license_expires'),
-            value: displayOrDash(strings, expires),
-            badge: switch (freshness) {
-              LicenseFreshness.expired => _InfoBadge(
-                  label: strings.t('profile.license_expired'),
-                  color: AppColors.danger,
-                ),
-              LicenseFreshness.soon => _InfoBadge(
-                  label: strings.t('profile.license_expiring'),
-                  color: AppColors.amber,
-                ),
-              _ => null,
-            },
-            valueColor: switch (freshness) {
-              LicenseFreshness.expired => AppColors.danger,
-              LicenseFreshness.soon => AppColors.amber,
-              _ => AppColors.ink,
-            },
-          ),
-        ],
-      ),
+      children: [
+        _SettingRow(
+          icon: Icons.phone_outlined,
+          title: strings.t('profile.phone'),
+          value: displayOrDash(strings, phone),
+          ltr: phone.isNotEmpty,
+          copyable: phone.isNotEmpty,
+          onTap: phone.isEmpty
+              ? null
+              : () => copyProfileValue(context, strings, phone),
+        ),
+        _SettingRow(
+          icon: Icons.badge_outlined,
+          title: strings.t('profile.license'),
+          value: displayOrDash(strings, license),
+          ltr: license.isNotEmpty,
+          copyable: license.isNotEmpty,
+          onTap: license.isEmpty
+              ? null
+              : () => copyProfileValue(context, strings, license),
+        ),
+        _SettingRow(
+          icon: Icons.event_outlined,
+          title: strings.t('profile.license_expires'),
+          value: displayOrDash(strings, expires),
+          valueColor: switch (freshness) {
+            LicenseFreshness.expired => AppColors.danger,
+            LicenseFreshness.soon => AppColors.primary,
+            _ => null,
+          },
+          badge: switch (freshness) {
+            LicenseFreshness.expired => strings.t('profile.license_expired'),
+            LicenseFreshness.soon => strings.t('profile.license_expiring'),
+            _ => null,
+          },
+          showChevron: false,
+        ),
+      ],
     );
   }
 }
@@ -247,73 +175,35 @@ class ProfileCompanyCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return _ProfileCard(
-      icon: Icons.apartment_outlined,
-      title: strings.t('profile.company'),
-      child: Column(
-        children: [
-          _InfoTile(
-            strings: strings,
-            icon: Icons.business_outlined,
-            label: strings.t('profile.company'),
-            value: displayOrDash(strings, company),
-          ),
-          if (city != null && city!.trim().isNotEmpty) ...[
-            const Divider(height: 1),
-            _InfoTile(
-              strings: strings,
-              icon: Icons.place_outlined,
-              label: strings.t('profile.city'),
-              value: city!.trim(),
-            ),
-          ],
-          if (phone != null && phone!.trim().isNotEmpty) ...[
-            const Divider(height: 1),
-            _InfoTile(
-              strings: strings,
-              icon: Icons.phone_outlined,
-              label: strings.t('profile.phone'),
-              value: phone!.trim(),
-              copyable: true,
-              ltr: true,
-            ),
-          ],
-          const SizedBox(height: 12),
-          Container(
-            width: double.infinity,
-            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
-            decoration: BoxDecoration(
-              color: AppColors.amber.withValues(alpha: 0.1),
-              borderRadius: BorderRadius.circular(10),
-              border: Border.all(
-                color: AppColors.amber.withValues(alpha: 0.28),
-              ),
-            ),
-            child: Row(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                const Icon(
-                  Icons.info_outline,
-                  size: 18,
-                  color: AppColors.amber,
-                ),
-                const SizedBox(width: 8),
-                Expanded(
-                  child: Text(
-                    strings.t('profile.belongs_to'),
-                    style: const TextStyle(
-                      color: AppColors.navy,
-                      fontWeight: FontWeight.w600,
-                      height: 1.4,
-                      fontSize: 13,
-                    ),
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ],
+    final rows = <Widget>[
+      _SettingRow(
+        icon: Icons.apartment_outlined,
+        title: strings.t('profile.company'),
+        value: displayOrDash(strings, company),
+        showChevron: false,
       ),
+      if (city != null && city!.trim().isNotEmpty)
+        _SettingRow(
+          icon: Icons.place_outlined,
+          title: strings.t('profile.city'),
+          value: city!.trim(),
+          showChevron: false,
+        ),
+      if (phone != null && phone!.trim().isNotEmpty)
+        _SettingRow(
+          icon: Icons.phone_outlined,
+          title: strings.t('profile.phone'),
+          value: phone!.trim(),
+          ltr: true,
+          copyable: true,
+          onTap: () => copyProfileValue(context, strings, phone!.trim()),
+        ),
+    ];
+
+    return _SettingsSection(
+      title: strings.t('profile.company'),
+      footer: strings.t('profile.belongs_to'),
+      children: rows,
     );
   }
 }
@@ -332,40 +222,67 @@ class ProfileLanguageCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return _ProfileCard(
+    return _SettingRow(
       icon: Icons.translate_outlined,
       title: strings.t('profile.language'),
-      hint: strings.t('profile.language_hint'),
-      child: LayoutBuilder(
-        builder: (context, constraints) {
-          final stacked = constraints.maxWidth < 360;
-          final arabic = _LanguageTile(
-            code: 'AR',
-            title: strings.t('lang.ar'),
-            selected: selected == 'ar',
-            onTap: () => onSelected('ar'),
-          );
-          final english = _LanguageTile(
-            code: 'EN',
-            title: strings.t('lang.en'),
-            selected: selected == 'en',
-            onTap: () => onSelected('en'),
-          );
-          if (stacked) {
-            return Column(
-              children: [arabic, const SizedBox(height: 10), english],
-            );
-          }
-          return Row(
-            children: [
-              Expanded(child: arabic),
-              const SizedBox(width: 10),
-              Expanded(child: english),
-            ],
-          );
-        },
-      ),
+      value: selected == 'ar' ? strings.t('lang.ar') : strings.t('lang.en'),
+      ltr: selected == 'en',
+      onTap: () => _openLanguageSheet(context),
     );
+  }
+
+  Future<void> _openLanguageSheet(BuildContext context) async {
+    final next = await showModalBottomSheet<String>(
+      context: context,
+      backgroundColor: AppColors.white,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(
+          top: Radius.circular(AppSpacing.radiusLg),
+        ),
+      ),
+      builder: (context) {
+        return SafeArea(
+          child: Padding(
+            padding: const EdgeInsets.fromLTRB(20, 12, 20, 20),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                Center(
+                  child: Container(
+                    width: 36,
+                    height: 4,
+                    decoration: BoxDecoration(
+                      color: AppColors.line,
+                      borderRadius: BorderRadius.circular(99),
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 16),
+                Text(strings.t('profile.language'), style: AppText.heading),
+                const SizedBox(height: 6),
+                Text(strings.t('profile.language_hint'), style: AppText.label),
+                const SizedBox(height: 16),
+                _LanguageChoice(
+                  code: 'ar',
+                  title: strings.t('lang.ar'),
+                  selected: selected == 'ar',
+                  onTap: () => Navigator.pop(context, 'ar'),
+                ),
+                const SizedBox(height: 10),
+                _LanguageChoice(
+                  code: 'en',
+                  title: strings.t('lang.en'),
+                  selected: selected == 'en',
+                  onTap: () => Navigator.pop(context, 'en'),
+                ),
+              ],
+            ),
+          ),
+        );
+      },
+    );
+    if (next != null) onSelected(next);
   }
 }
 
@@ -381,98 +298,253 @@ class ProfileLogoutCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return _ProfileCard(
-      icon: Icons.logout,
-      title: strings.t('profile.session'),
-      hint: strings.t('profile.session_hint'),
-      iconBackground: AppColors.danger.withValues(alpha: 0.1),
+    return _SettingRow(
+      icon: Icons.logout_rounded,
+      title: strings.t('profile.logout'),
+      subtitle: strings.t('profile.session_hint'),
       iconColor: AppColors.danger,
-      child: AppButton(
-        label: strings.t('profile.logout'),
-        tone: AppButtonTone.danger,
-        icon: Icons.logout,
-        onPressed: onLogout,
-      ),
+      titleColor: AppColors.danger,
+      showChevron: false,
+      onTap: onLogout,
     );
   }
 }
 
-class _ProfileCard extends StatelessWidget {
-  const _ProfileCard({
+class ProfileSettingsCard extends StatelessWidget {
+  const ProfileSettingsCard({
+    super.key,
+    required this.strings,
+    required this.selectedLanguage,
+    required this.onLanguageSelected,
+    required this.onLogout,
+  });
+
+  final AppStrings strings;
+  final String selectedLanguage;
+  final ValueChanged<String> onLanguageSelected;
+  final VoidCallback onLogout;
+
+  @override
+  Widget build(BuildContext context) {
+    return _SettingsSection(
+      title: strings.t('profile.settings'),
+      children: [
+        ProfileLanguageCard(
+          strings: strings,
+          selected: selectedLanguage,
+          onSelected: onLanguageSelected,
+        ),
+        ProfileLogoutCard(strings: strings, onLogout: onLogout),
+      ],
+    );
+  }
+}
+
+class _SettingsSection extends StatelessWidget {
+  const _SettingsSection({
+    required this.title,
+    required this.children,
+    this.footer,
+  });
+
+  final String title;
+  final List<Widget> children;
+  final String? footer;
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Padding(
+          padding: const EdgeInsets.fromLTRB(4, 0, 4, 10),
+          child: Text(title, style: AppText.label),
+        ),
+        _GroupCard(
+          child: Column(
+            children: [
+              for (var i = 0; i < children.length; i++) ...[
+                children[i],
+                if (i != children.length - 1)
+                  const Padding(
+                    padding: EdgeInsetsDirectional.only(start: 68),
+                    child: Divider(height: 1),
+                  ),
+              ],
+            ],
+          ),
+        ),
+        if (footer != null) ...[
+          const SizedBox(height: 8),
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 4),
+            child: Text(footer!, style: AppText.caption),
+          ),
+        ],
+      ],
+    );
+  }
+}
+
+class _GroupCard extends StatelessWidget {
+  const _GroupCard({required this.child});
+
+  final Widget child;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      width: double.infinity,
+      decoration: BoxDecoration(
+        color: AppColors.white,
+        borderRadius: BorderRadius.circular(22),
+        boxShadow: const [
+          BoxShadow(
+            color: Color(0x0A1A120E),
+            blurRadius: 16,
+            offset: Offset(0, 6),
+          ),
+        ],
+      ),
+      clipBehavior: Clip.antiAlias,
+      child: child,
+    );
+  }
+}
+
+class _SettingRow extends StatelessWidget {
+  const _SettingRow({
     required this.icon,
     required this.title,
-    required this.child,
-    this.hint,
-    this.iconBackground,
+    this.value,
+    this.subtitle,
+    this.badge,
+    this.ltr = false,
+    this.showChevron = true,
+    this.copyable = false,
     this.iconColor,
+    this.titleColor,
+    this.valueColor,
+    this.onTap,
   });
 
   final IconData icon;
   final String title;
-  final String? hint;
-  final Widget child;
-  final Color? iconBackground;
+  final String? value;
+  final String? subtitle;
+  final String? badge;
+  final bool ltr;
+  final bool showChevron;
+  final bool copyable;
   final Color? iconColor;
+  final Color? titleColor;
+  final Color? valueColor;
+  final VoidCallback? onTap;
 
   @override
   Widget build(BuildContext context) {
-    return DecoratedBox(
-      decoration: BoxDecoration(
-        color: AppColors.card,
-        borderRadius: BorderRadius.circular(AppSpacing.radius),
-        border: Border.all(color: AppColors.line),
-      ),
+    final color = iconColor ?? AppColors.primary;
+    final hasValue = value != null && value!.isNotEmpty;
+
+    return InkWell(
+      onTap: onTap,
       child: Padding(
-        padding: const EdgeInsets.fromLTRB(16, 16, 16, 16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+        child: Row(
           children: [
-            Row(
-              children: [
-                Container(
-                  width: 36,
-                  height: 36,
-                  decoration: BoxDecoration(
-                    color: iconBackground ?? AppColors.surface,
-                    borderRadius: BorderRadius.circular(10),
-                  ),
-                  child: Icon(
-                    icon,
-                    size: 18,
-                    color: iconColor ?? AppColors.navy,
-                  ),
-                ),
-                const SizedBox(width: 10),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
+            Container(
+              width: 40,
+              height: 40,
+              alignment: Alignment.center,
+              decoration: BoxDecoration(
+                color: color.withValues(alpha: 0.1),
+                shape: BoxShape.circle,
+              ),
+              child: Icon(icon, size: 20, color: color),
+            ),
+            const SizedBox(width: 12),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
                     children: [
                       Text(
                         title,
-                        style: const TextStyle(
+                        maxLines: 1,
+                        softWrap: false,
+                        style: AppText.body.copyWith(
                           fontWeight: FontWeight.w700,
-                          fontSize: 16,
-                          color: AppColors.navy,
+                          color: titleColor ?? AppColors.ink,
                         ),
                       ),
-                      if (hint != null) ...[
-                        const SizedBox(height: 2),
-                        Text(
-                          hint!,
-                          style: const TextStyle(
-                            color: AppColors.muted,
-                            fontSize: 13,
-                            height: 1.35,
+                      if (hasValue) ...[
+                        const SizedBox(width: 8),
+                        Expanded(
+                          child: FittedBox(
+                            fit: BoxFit.scaleDown,
+                            alignment: AlignmentDirectional.centerEnd,
+                            child: Directionality(
+                              textDirection: ltr
+                                  ? TextDirection.ltr
+                                  : Directionality.of(context),
+                              child: Text(
+                                value!,
+                                maxLines: 1,
+                                softWrap: false,
+                                style: AppText.label.copyWith(
+                                  color: valueColor ?? AppColors.muted,
+                                  fontWeight: FontWeight.w600,
+                                ),
+                              ),
+                            ),
                           ),
                         ),
                       ],
                     ],
                   ),
-                ),
-              ],
+                  if (subtitle != null) ...[
+                    const SizedBox(height: 2),
+                    Text(subtitle!, style: AppText.caption),
+                  ],
+                  if (badge != null) ...[
+                    const SizedBox(height: 6),
+                    Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 8,
+                        vertical: 3,
+                      ),
+                      decoration: BoxDecoration(
+                        color: (valueColor ?? AppColors.primary)
+                            .withValues(alpha: 0.12),
+                        borderRadius: BorderRadius.circular(6),
+                      ),
+                      child: Text(
+                        badge!,
+                        style: AppText.caption.copyWith(
+                          color: valueColor ?? AppColors.primary,
+                        ),
+                      ),
+                    ),
+                  ],
+                ],
+              ),
             ),
-            const SizedBox(height: 14),
-            child,
+            if (copyable) ...[
+              const SizedBox(width: 6),
+              const Icon(
+                Icons.copy_outlined,
+                color: AppColors.muted,
+                size: 18,
+              ),
+            ] else if (showChevron) ...[
+              const SizedBox(width: 2),
+              const Icon(
+                Icons.chevron_right_rounded,
+                color: AppColors.muted,
+                size: 22,
+              ),
+            ],
           ],
         ),
       ),
@@ -480,8 +552,31 @@ class _ProfileCard extends StatelessWidget {
   }
 }
 
-class _LanguageTile extends StatelessWidget {
-  const _LanguageTile({
+class _Avatar extends StatelessWidget {
+  const _Avatar({required this.name});
+
+  final String name;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      width: 56,
+      height: 56,
+      alignment: Alignment.center,
+      decoration: const BoxDecoration(
+        color: AppColors.primarySoft,
+        shape: BoxShape.circle,
+      ),
+      child: Text(
+        initialsFor(name),
+        style: AppText.heading.copyWith(color: AppColors.primary, height: 1),
+      ),
+    );
+  }
+}
+
+class _LanguageChoice extends StatelessWidget {
+  const _LanguageChoice({
     required this.code,
     required this.title,
     required this.selected,
@@ -495,185 +590,45 @@ class _LanguageTile extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Semantics(
-      button: true,
-      selected: selected,
-      label: title,
-      child: Material(
-        color: selected
-            ? AppColors.amber.withValues(alpha: 0.12)
-            : AppColors.surface,
+    return Material(
+      color: selected ? AppColors.primarySoft : AppColors.surface,
+      borderRadius: BorderRadius.circular(AppSpacing.radius),
+      child: InkWell(
+        onTap: onTap,
         borderRadius: BorderRadius.circular(AppSpacing.radius),
-        child: InkWell(
-          onTap: onTap,
-          borderRadius: BorderRadius.circular(AppSpacing.radius),
-          child: AnimatedContainer(
-            duration: const Duration(milliseconds: 160),
-            curve: Curves.easeOut,
-            constraints: const BoxConstraints(minHeight: AppSpacing.touch),
-            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
-            decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(AppSpacing.radius),
-              border: Border.all(
-                color: selected ? AppColors.amber : AppColors.line,
-                width: selected ? 1.5 : 1,
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 14),
+          child: Row(
+            children: [
+              Container(
+                width: 36,
+                height: 36,
+                alignment: Alignment.center,
+                decoration: BoxDecoration(
+                  color: selected ? AppColors.primary : AppColors.white,
+                  borderRadius: BorderRadius.circular(10),
+                ),
+                child: Text(
+                  code.toUpperCase(),
+                  style: AppText.caption.copyWith(
+                    color: selected ? AppColors.white : AppColors.ink,
+                  ),
+                ),
               ),
-            ),
-            child: Row(
-              children: [
-                Container(
-                  width: 36,
-                  height: 36,
-                  alignment: Alignment.center,
-                  decoration: BoxDecoration(
-                    color: selected ? AppColors.navy : AppColors.white,
-                    borderRadius: BorderRadius.circular(10),
-                    border: selected
-                        ? null
-                        : Border.all(color: AppColors.line),
-                  ),
-                  child: Text(
-                    code,
-                    style: TextStyle(
-                      color: selected ? AppColors.white : AppColors.navy,
-                      fontWeight: FontWeight.w700,
-                      fontSize: 12,
-                    ),
-                  ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Text(
+                  title,
+                  style: AppText.body.copyWith(fontWeight: FontWeight.w800),
                 ),
-                const SizedBox(width: 10),
-                Expanded(
-                  child: Text(
-                    title,
-                    style: const TextStyle(
-                      fontWeight: FontWeight.w700,
-                      color: AppColors.navy,
-                      fontSize: 15,
-                    ),
-                  ),
-                ),
-                Icon(
-                  selected ? Icons.check_circle : Icons.circle_outlined,
-                  size: 20,
-                  color: selected ? AppColors.amber : AppColors.line,
-                ),
-              ],
-            ),
-          ),
-        ),
-      ),
-    );
-  }
-}
-
-class _InfoTile extends StatelessWidget {
-  const _InfoTile({
-    required this.strings,
-    required this.icon,
-    required this.label,
-    required this.value,
-    this.copyable = false,
-    this.ltr = false,
-    this.badge,
-    this.valueColor,
-  });
-
-  final AppStrings strings;
-  final IconData icon;
-  final String label;
-  final String value;
-  final bool copyable;
-  final bool ltr;
-  final Widget? badge;
-  final Color? valueColor;
-
-  @override
-  Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 10),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Container(
-            width: 36,
-            height: 36,
-            decoration: BoxDecoration(
-              color: AppColors.surface,
-              borderRadius: BorderRadius.circular(10),
-            ),
-            child: Icon(icon, size: 18, color: AppColors.navy),
-          ),
-          const SizedBox(width: 10),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  label,
-                  style: const TextStyle(
-                    color: AppColors.muted,
-                    fontSize: 13,
-                    fontWeight: FontWeight.w600,
-                  ),
-                ),
-                const SizedBox(height: 3),
-                Text(
-                  value,
-                  maxLines: 2,
-                  overflow: TextOverflow.ellipsis,
-                  textDirection: ltr ? TextDirection.ltr : null,
-                  style: TextStyle(
-                    fontSize: 16,
-                    fontWeight: FontWeight.w600,
-                    color: valueColor ?? AppColors.ink,
-                    height: 1.3,
-                  ),
-                ),
-                if (badge != null) ...[
-                  const SizedBox(height: 6),
-                  badge!,
-                ],
-              ],
-            ),
-          ),
-          if (copyable)
-            IconButton(
-              tooltip: strings.t('profile.copy'),
-              visualDensity: VisualDensity.compact,
-              constraints: const BoxConstraints(minWidth: 44, minHeight: 44),
-              onPressed: () => copyProfileValue(context, strings, value),
-              icon: const Icon(
-                Icons.copy_outlined,
-                size: 18,
-                color: AppColors.muted,
               ),
-            ),
-        ],
-      ),
-    );
-  }
-}
-
-class _InfoBadge extends StatelessWidget {
-  const _InfoBadge({required this.label, required this.color});
-
-  final String label;
-  final Color color;
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
-      decoration: BoxDecoration(
-        color: color.withValues(alpha: 0.12),
-        borderRadius: BorderRadius.circular(6),
-      ),
-      child: Text(
-        label,
-        style: TextStyle(
-          color: color,
-          fontWeight: FontWeight.w700,
-          fontSize: 11,
+              Icon(
+                selected ? Icons.check_circle : Icons.circle_outlined,
+                color: selected ? AppColors.primary : AppColors.line,
+                size: 22,
+              ),
+            ],
+          ),
         ),
       ),
     );

@@ -7,10 +7,14 @@ import '../../../core/l10n/locale_controller.dart';
 import '../../../core/maps/google_maps_links.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../core/theme/app_spacing.dart';
+import '../../../core/theme/app_text.dart';
 import '../../../shared/models/trip.dart';
 import '../../../shared/models/trip_status.dart';
+import '../../../shared/widgets/appear.dart';
 import '../../../shared/widgets/app_button.dart';
 import '../../../shared/widgets/async_states.dart';
+import '../../../shared/widgets/icon_bubble.dart';
+import '../../../shared/widgets/page_header.dart';
 import '../../../shared/widgets/status_badge.dart';
 import '../../tracking/presentation/tracking_card.dart';
 import '../providers/trip_details_providers.dart';
@@ -27,38 +31,56 @@ class TripDetailsScreen extends ConsumerWidget {
     final action = ref.watch(statusActionProvider(tripId));
 
     return Scaffold(
-      appBar: AppBar(title: Text(strings.t('trip.details'))),
-      body: tripAsync.when(
-        loading: () => LoadingState(message: strings.t('state.loading')),
-        error: (error, _) => ErrorState(
-          message: errorMessageFor(
-            error,
-            strings.t('state.offline'),
-            strings.t('state.error'),
+      body: Column(
+        children: [
+          PageHeader(
+            title: strings.t('trip.details'),
+            subtitle: tripAsync.valueOrNull?.reference,
+            showBack: true,
           ),
-          retryLabel: strings.t('state.retry'),
-          onRetry: () => ref.invalidate(tripDetailsProvider(tripId)),
-        ),
-        data: (trip) => _TripBody(
-          trip: trip,
-          strings: strings,
-          action: action,
-          onUpdate: () async {
-            final next = trip.status.nextApiValue;
-            if (next == null) {
-              return;
-            }
-            await ref.read(statusActionProvider(tripId).notifier).updateTo(next);
-          },
-          onPod: () => context.push('/trips/$tripId/pod'),
-        ),
+          Expanded(
+            child: tripAsync.when(
+              loading: () => LoadingState(message: strings.t('state.loading')),
+              error: (error, _) => ErrorState(
+                message: errorMessageFor(
+                  error,
+                  strings.t('state.offline'),
+                  strings.t('state.error'),
+                ),
+                retryLabel: strings.t('state.retry'),
+                onRetry: () => ref.invalidate(tripDetailsProvider(tripId)),
+              ),
+              data: (trip) => _TripBody(trip: trip, strings: strings),
+            ),
+          ),
+        ],
+      ),
+      bottomNavigationBar: tripAsync.maybeWhen(
+        data: (trip) {
+          final nextKey = trip.status.nextActionKey;
+          if (!trip.status.needsPod && nextKey == null) {
+            return null;
+          }
+          return _TripActionBar(
+            trip: trip,
+            strings: strings,
+            action: action,
+            onUpdate: () async {
+              final next = trip.status.nextApiValue;
+              if (next == null) return;
+              await ref.read(statusActionProvider(tripId).notifier).updateTo(next);
+            },
+            onPod: () => context.push('/trips/$tripId/pod'),
+          );
+        },
+        orElse: () => null,
       ),
     );
   }
 }
 
-class _TripBody extends StatelessWidget {
-  const _TripBody({
+class _TripActionBar extends StatelessWidget {
+  const _TripActionBar({
     required this.trip,
     required this.strings,
     required this.action,
@@ -74,105 +96,167 @@ class _TripBody extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final shipment = trip.job?.shipment;
     final nextKey = trip.status.nextActionKey;
+    return Material(
+      color: AppColors.white,
+      child: SafeArea(
+        top: false,
+        child: Padding(
+          padding: const EdgeInsets.fromLTRB(16, 10, 16, 12),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              if (action.error != null) ...[
+                Text(
+                  action.offline
+                      ? strings.t('state.offline')
+                      : strings.t('state.error'),
+                  style: AppText.body.copyWith(color: AppColors.danger),
+                ),
+                const SizedBox(height: 8),
+              ],
+              if (trip.status.needsPod)
+                AppButton(
+                  label: strings.t('action.record_pod'),
+                  icon: Icons.assignment_turned_in_rounded,
+                  onPressed: onPod,
+                )
+              else if (nextKey != null)
+                AppButton(
+                  label: action.error != null
+                      ? strings.t('action.retry')
+                      : strings.t(nextKey),
+                  busy: action.submitting,
+                  icon: Icons.check_circle_outline_rounded,
+                  onPressed: onUpdate,
+                ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _TripBody extends StatelessWidget {
+  const _TripBody({required this.trip, required this.strings});
+
+  final Trip trip;
+  final AppStrings strings;
+
+  @override
+  Widget build(BuildContext context) {
+    final shipment = trip.job?.shipment;
 
     return ListView(
-      padding: const EdgeInsets.all(AppSpacing.lg),
+      padding: const EdgeInsets.fromLTRB(
+        AppSpacing.lg,
+        8,
+        AppSpacing.lg,
+        AppSpacing.xl,
+      ),
       children: [
-        Row(
-          children: [
-            Expanded(
-              child: Text(
-                trip.reference,
-                style: const TextStyle(fontSize: 24, fontWeight: FontWeight.w700),
+        Appear(
+          child: Row(
+            children: [
+              Expanded(
+                child: Text(trip.reference, style: AppText.heading),
               ),
-            ),
-            StatusBadge(
-              status: trip.status,
-              label: strings.t(trip.status.labelKey),
-            ),
-          ],
+              StatusBadge(
+                status: trip.status,
+                label: strings.t(trip.status.labelKey),
+              ),
+            ],
+          ),
         ),
         const SizedBox(height: AppSpacing.md),
-        _FlowDots(status: trip.status),
+        Appear.stagger(
+          index: 1,
+          child: _FlowTrack(status: trip.status, strings: strings),
+        ),
         if (trip.otpCode != null) ...[
           const SizedBox(height: AppSpacing.lg),
-          _OtpCard(code: trip.otpCode!, strings: strings),
+          Appear.stagger(
+            index: 2,
+            child: _OtpCard(code: trip.otpCode!, strings: strings),
+          ),
         ],
         const SizedBox(height: AppSpacing.lg),
-        _InfoCard(
-          title: strings.t('trip.cargo'),
-          lines: [
-            shipment?.cargoType,
-            shipment?.cargoDescription,
-            if (shipment?.notes != null) shipment!.notes,
-          ],
+        Appear.stagger(
+          index: 3,
+          child: _InfoCard(
+            icon: Icons.inventory_2_outlined,
+            title: strings.t('trip.cargo'),
+            lines: [
+              shipment?.cargoType,
+              shipment?.cargoDescription,
+              if (shipment?.notes != null) shipment!.notes,
+            ],
+          ),
         ),
         const SizedBox(height: 12),
-        _LocationCard(
-          title: strings.t('trip.pickup'),
-          address: trip.pickupLabel,
-          lat: trip.pickupLat,
-          lng: trip.pickupLng,
-          strings: strings,
+        Appear.stagger(
+          index: 4,
+          child: _LocationCard(
+            title: strings.t('trip.pickup'),
+            address: trip.pickupLabel,
+            lat: trip.pickupLat,
+            lng: trip.pickupLng,
+            strings: strings,
+            icon: Icons.upload_rounded,
+            color: AppColors.primary,
+          ),
         ),
         const SizedBox(height: 12),
-        _LocationCard(
-          title: strings.t('trip.delivery'),
-          address: trip.deliveryLabel,
-          lat: trip.deliveryLat,
-          lng: trip.deliveryLng,
-          strings: strings,
+        Appear.stagger(
+          index: 5,
+          child: _LocationCard(
+            title: strings.t('trip.delivery'),
+            address: trip.deliveryLabel,
+            lat: trip.deliveryLat,
+            lng: trip.deliveryLng,
+            strings: strings,
+            icon: Icons.flag_rounded,
+            color: AppColors.ink,
+          ),
         ),
         const SizedBox(height: 12),
-        _InfoCard(
-          title: strings.t('trip.quantity'),
-          lines: [
-            '${strings.t('trip.planned')}: ${_qty(trip.plannedQuantity)}',
-            if (trip.deliveredQuantity != null)
-              '${strings.t('trip.delivered_qty')}: ${_qty(trip.deliveredQuantity)}',
-          ],
+        Appear.stagger(
+          index: 6,
+          child: _InfoCard(
+            icon: Icons.scale_outlined,
+            title: strings.t('trip.quantity'),
+            lines: [
+              '${strings.t('trip.planned')}: ${_qty(trip.plannedQuantity)}',
+              if (trip.deliveredQuantity != null)
+                '${strings.t('trip.delivered_qty')}: ${_qty(trip.deliveredQuantity)}',
+            ],
+          ),
         ),
         const SizedBox(height: 12),
-        _InfoCard(
-          title: strings.t('trip.truck'),
-          lines: [
-            if (trip.truck?.plateNumber != null)
-              '${strings.t('trip.plate')}: ${trip.truck!.plateNumber}',
-            trip.truck?.label,
-            if (trip.job?.customer != null)
-              '${strings.t('trip.customer')}: ${trip.job!.customer!.name}',
-          ],
+        Appear.stagger(
+          index: 7,
+          child: _InfoCard(
+            icon: Icons.local_shipping_outlined,
+            title: strings.t('trip.truck'),
+            lines: [
+              if (trip.truck?.plateNumber != null)
+                '${strings.t('trip.plate')}: ${trip.truck!.plateNumber}',
+              trip.truck?.label,
+              if (trip.job?.customer != null)
+                '${strings.t('trip.customer')}: ${trip.job!.customer!.name}',
+            ],
+          ),
         ),
         if (trip.status.canShareLocation) ...[
           const SizedBox(height: AppSpacing.lg),
-          TrackingCard(
-            tripId: trip.id,
-            lastLat: trip.currentLat,
-            lastLng: trip.currentLng,
-          ),
-        ],
-        const SizedBox(height: AppSpacing.xl),
-        if (trip.status.needsPod)
-          AppButton(
-            label: strings.t('action.record_pod'),
-            icon: Icons.assignment_turned_in_outlined,
-            onPressed: onPod,
-          )
-        else if (nextKey != null)
-          AppButton(
-            label: action.error != null
-                ? strings.t('action.retry')
-                : strings.t(nextKey),
-            busy: action.submitting,
-            onPressed: onUpdate,
-          ),
-        if (action.error != null) ...[
-          const SizedBox(height: 10),
-          Text(
-            action.offline ? strings.t('state.offline') : strings.t('state.error'),
-            style: const TextStyle(color: AppColors.danger),
+          Appear.stagger(
+            index: 8,
+            child: TrackingCard(
+              tripId: trip.id,
+              lastLat: trip.currentLat,
+              lastLng: trip.currentLng,
+            ),
           ),
         ],
       ],
@@ -199,34 +283,29 @@ class _OtpCard extends StatelessWidget {
       width: double.infinity,
       padding: const EdgeInsets.all(AppSpacing.lg),
       decoration: BoxDecoration(
-        color: AppColors.navy,
+        color: AppColors.primarySoft,
         borderRadius: BorderRadius.circular(AppSpacing.radius),
+        border: Border.all(color: AppColors.primaryMuted),
       ),
       child: Column(
         children: [
+          const IconBubble(
+            icon: Icons.pin_rounded,
+            size: 44,
+            iconSize: 22,
+          ),
+          const SizedBox(height: 10),
           Text(
             strings.t('trip.otp'),
-            style: const TextStyle(color: AppColors.navyMuted),
+            style: AppText.label,
           ),
-          const SizedBox(height: 8),
-          ShaderMask(
-            blendMode: BlendMode.srcIn,
-            shaderCallback: (bounds) => AppColors.accentGradient.createShader(bounds),
-            child: Text(
-              code,
-              style: const TextStyle(
-                color: AppColors.white,
-                fontSize: 36,
-                fontWeight: FontWeight.w800,
-                letterSpacing: 6,
-              ),
-            ),
-          ),
-          const SizedBox(height: 8),
+          const SizedBox(height: 6),
+          Text(code, style: AppText.numeral),
+          const SizedBox(height: 6),
           Text(
             strings.t('trip.otp_hint'),
             textAlign: TextAlign.center,
-            style: const TextStyle(color: AppColors.navyMuted, height: 1.4),
+            style: AppText.bodyMuted,
           ),
         ],
       ),
@@ -239,6 +318,8 @@ class _LocationCard extends StatelessWidget {
     required this.title,
     required this.address,
     required this.strings,
+    required this.icon,
+    required this.color,
     this.lat,
     this.lng,
   });
@@ -246,6 +327,8 @@ class _LocationCard extends StatelessWidget {
   final String title;
   final String address;
   final AppStrings strings;
+  final IconData icon;
+  final Color color;
   final double? lat;
   final double? lng;
 
@@ -253,6 +336,8 @@ class _LocationCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final hasCoords = lat != null && lng != null;
     return _InfoCard(
+      icon: icon,
+      iconColor: color,
       title: title,
       lines: [
         address,
@@ -260,8 +345,9 @@ class _LocationCard extends StatelessWidget {
       ],
       action: hasCoords
           ? TextButton.icon(
-              onPressed: () => GoogleMapsLinks.open(lat: lat!, lng: lng!, navigate: true),
-              icon: const Icon(Icons.navigation_outlined),
+              onPressed: () =>
+                  GoogleMapsLinks.open(lat: lat!, lng: lng!, navigate: true),
+              icon: const Icon(Icons.navigation_rounded),
               label: Text(strings.t('action.navigate')),
             )
           : null,
@@ -270,10 +356,18 @@ class _LocationCard extends StatelessWidget {
 }
 
 class _InfoCard extends StatelessWidget {
-  const _InfoCard({required this.title, required this.lines, this.action});
+  const _InfoCard({
+    required this.title,
+    required this.lines,
+    required this.icon,
+    this.iconColor,
+    this.action,
+  });
 
   final String title;
   final List<String?> lines;
+  final IconData icon;
+  final Color? iconColor;
   final Widget? action;
 
   @override
@@ -290,18 +384,24 @@ class _InfoCard extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(
-            title,
-            style: const TextStyle(
-              color: AppColors.muted,
-              fontWeight: FontWeight.w700,
-              fontSize: 13,
-            ),
+          Row(
+            children: [
+              IconBubble(
+                icon: icon,
+                color: iconColor ?? AppColors.primary,
+                size: 36,
+                iconSize: 18,
+              ),
+              const SizedBox(width: 10),
+              Expanded(
+                child: Text(title, style: AppText.title),
+              ),
+            ],
           ),
-          const SizedBox(height: 6),
+          const SizedBox(height: 10),
           Text(
             visible.isEmpty ? '—' : visible.join('\n'),
-            style: const TextStyle(fontSize: 16, height: 1.4),
+            style: AppText.body,
           ),
           ?action,
         ],
@@ -310,30 +410,77 @@ class _InfoCard extends StatelessWidget {
   }
 }
 
-class _FlowDots extends StatelessWidget {
-  const _FlowDots({required this.status});
+class _FlowTrack extends StatelessWidget {
+  const _FlowTrack({required this.status, required this.strings});
 
   final TripStatus status;
+  final AppStrings strings;
 
   @override
   Widget build(BuildContext context) {
     final current = status.progressIndex;
-    return Row(
-      children: [
-        for (var i = 0; i < TripStatus.driverFlow.length; i++) ...[
-          Expanded(
-            child: Container(
-              height: 6,
-              decoration: BoxDecoration(
-                gradient: i <= current ? AppColors.accentGradient : null,
-                color: i <= current ? null : AppColors.line,
-                borderRadius: BorderRadius.circular(99),
-              ),
-            ),
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(14),
+      decoration: BoxDecoration(
+        color: AppColors.white,
+        borderRadius: BorderRadius.circular(AppSpacing.radius),
+        border: Border.all(color: AppColors.line),
+      ),
+      child: Column(
+        children: [
+          Row(
+            children: [
+              for (var i = 0; i < TripStatus.driverFlow.length; i++) ...[
+                Expanded(
+                  child: _FlowSegment(
+                    filled: i < current,
+                    active: i == current,
+                  ),
+                ),
+                if (i < TripStatus.driverFlow.length - 1)
+                  const SizedBox(width: 4),
+              ],
+            ],
           ),
-          if (i < TripStatus.driverFlow.length - 1) const SizedBox(width: 4),
+          const SizedBox(height: 10),
+          Row(
+            children: [
+              const Icon(
+                Icons.timeline_rounded,
+                size: 16,
+                color: AppColors.primary,
+              ),
+              const SizedBox(width: 6),
+              Expanded(
+                child: Text(
+                  strings.t(status.labelKey),
+                  style: AppText.title.copyWith(color: AppColors.primaryDark),
+                ),
+              ),
+            ],
+          ),
         ],
-      ],
+      ),
+    );
+  }
+}
+
+class _FlowSegment extends StatelessWidget {
+  const _FlowSegment({required this.filled, required this.active});
+
+  final bool filled;
+  final bool active;
+
+  @override
+  Widget build(BuildContext context) {
+    final base = filled || active ? AppColors.primary : AppColors.line;
+    return Container(
+      height: 7,
+      decoration: BoxDecoration(
+        color: base,
+        borderRadius: BorderRadius.circular(99),
+      ),
     );
   }
 }

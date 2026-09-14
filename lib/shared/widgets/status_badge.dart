@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../../core/theme/app_colors.dart';
+import '../../core/theme/app_text.dart';
 import '../models/trip_status.dart';
 
 class StatusBadge extends StatelessWidget {
@@ -20,23 +21,22 @@ class StatusBadge extends StatelessWidget {
     final color = switch (status) {
       TripStatus.completed || TripStatus.delivered => AppColors.success,
       TripStatus.cancelled => AppColors.danger,
-      TripStatus.inTransit || TripStatus.arrived => AppColors.amber,
-      _ => light ? AppColors.white : AppColors.navy,
+      TripStatus.inTransit || TripStatus.arrived => AppColors.primary,
+      _ => light ? AppColors.white : AppColors.primary,
     };
 
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
       decoration: BoxDecoration(
-        color: light ? Colors.white.withValues(alpha: 0.12) : color.withValues(alpha: 0.12),
-        borderRadius: BorderRadius.circular(8),
-        border: Border.all(color: light ? Colors.white24 : color.withValues(alpha: 0.35)),
+        color: light
+            ? Colors.white.withValues(alpha: 0.16)
+            : color.withValues(alpha: 0.12),
+        borderRadius: BorderRadius.circular(99),
       ),
       child: Text(
         label,
-        style: TextStyle(
+        style: AppText.caption.copyWith(
           color: light ? AppColors.white : color,
-          fontWeight: FontWeight.w700,
-          fontSize: 13,
         ),
       ),
     );

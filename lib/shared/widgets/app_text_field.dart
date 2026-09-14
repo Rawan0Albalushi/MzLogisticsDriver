@@ -1,7 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
-class AppTextField extends StatelessWidget {
+import '../../core/theme/app_colors.dart';
+import '../../core/theme/app_text.dart';
+
+class AppTextField extends StatefulWidget {
   const AppTextField({
     super.key,
     required this.label,
@@ -13,6 +16,8 @@ class AppTextField extends StatelessWidget {
     this.maxLines = 1,
     this.inputFormatters,
     this.textInputAction,
+    this.prefixIcon,
+    this.onSubmitted,
   });
 
   final String label;
@@ -24,21 +29,44 @@ class AppTextField extends StatelessWidget {
   final int maxLines;
   final List<TextInputFormatter>? inputFormatters;
   final TextInputAction? textInputAction;
+  final IconData? prefixIcon;
+  final ValueChanged<String>? onSubmitted;
+
+  @override
+  State<AppTextField> createState() => _AppTextFieldState();
+}
+
+class _AppTextFieldState extends State<AppTextField> {
+  late bool _hidden = widget.obscureText;
 
   @override
   Widget build(BuildContext context) {
     return TextField(
-      controller: controller,
-      obscureText: obscureText,
-      keyboardType: keyboardType,
-      enabled: enabled,
-      maxLines: maxLines,
-      inputFormatters: inputFormatters,
-      textInputAction: textInputAction,
-      style: const TextStyle(fontSize: 17, height: 1.3),
+      controller: widget.controller,
+      obscureText: _hidden,
+      keyboardType: widget.keyboardType,
+      enabled: widget.enabled,
+      maxLines: widget.obscureText ? 1 : widget.maxLines,
+      inputFormatters: widget.inputFormatters,
+      textInputAction: widget.textInputAction,
+      onSubmitted: widget.onSubmitted,
+      style: AppText.body.copyWith(height: 1.3),
       decoration: InputDecoration(
-        labelText: label,
-        errorText: errorText,
+        labelText: widget.label,
+        errorText: widget.errorText,
+        prefixIcon: widget.prefixIcon == null
+            ? null
+            : Icon(widget.prefixIcon, color: AppColors.muted),
+        suffixIcon: widget.obscureText
+            ? IconButton(
+                onPressed: () => setState(() => _hidden = !_hidden),
+                icon: Icon(
+                  _hidden
+                      ? Icons.visibility_outlined
+                      : Icons.visibility_off_outlined,
+                ),
+              )
+            : null,
       ),
     );
   }

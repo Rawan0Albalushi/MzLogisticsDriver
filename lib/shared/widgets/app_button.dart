@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 
 import '../../core/theme/app_colors.dart';
 import '../../core/theme/app_spacing.dart';
+import '../../core/theme/app_text.dart';
 
 class AppButton extends StatelessWidget {
   const AppButton({
@@ -23,17 +25,20 @@ class AppButton extends StatelessWidget {
   Widget build(BuildContext context) {
     final enabled = onPressed != null && !busy;
     final colors = switch (tone) {
-      AppButtonTone.primary => (AppColors.amber, AppColors.onAccent),
-      AppButtonTone.navy => (AppColors.navy, AppColors.white),
+      AppButtonTone.primary => (AppColors.primary, AppColors.onPrimary),
+      AppButtonTone.navy => (AppColors.ink, AppColors.white),
       AppButtonTone.danger => (AppColors.danger, AppColors.white),
-      AppButtonTone.ghost => (AppColors.white, AppColors.navy),
+      AppButtonTone.ghost => (AppColors.white, AppColors.ink),
     };
 
     final child = busy
-        ? const SizedBox(
+        ? SizedBox(
             width: 22,
             height: 22,
-            child: CircularProgressIndicator(strokeWidth: 2.4),
+            child: CircularProgressIndicator(
+              strokeWidth: 2.4,
+              color: colors.$2,
+            ),
           )
         : Row(
             mainAxisAlignment: MainAxisAlignment.center,
@@ -46,42 +51,33 @@ class AppButton extends StatelessWidget {
             ],
           );
 
-    final style = FilledButton.styleFrom(
-      backgroundColor: tone == AppButtonTone.primary ? Colors.transparent : colors.$1,
-      foregroundColor: colors.$2,
-      disabledBackgroundColor: AppColors.line,
-      disabledForegroundColor: AppColors.muted,
-      shadowColor: Colors.transparent,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(AppSpacing.radius),
-        side: tone == AppButtonTone.ghost
-            ? const BorderSide(color: AppColors.line)
-            : BorderSide.none,
-      ),
-      textStyle: const TextStyle(
-        fontSize: 17,
-        fontWeight: FontWeight.w700,
-      ),
-    );
-
-    final button = FilledButton(
-      onPressed: enabled ? onPressed : null,
-      style: style,
-      child: child,
-    );
-
     return SizedBox(
       width: double.infinity,
       height: AppSpacing.touch,
-      child: tone == AppButtonTone.primary && enabled
-          ? DecoratedBox(
-              decoration: BoxDecoration(
-                gradient: AppColors.accentGradient,
-                borderRadius: BorderRadius.circular(AppSpacing.radius),
-              ),
-              child: button,
-            )
-          : button,
+      child: FilledButton(
+        onPressed: enabled
+            ? () {
+                HapticFeedback.lightImpact();
+                onPressed!();
+              }
+            : null,
+        style: FilledButton.styleFrom(
+          backgroundColor: colors.$1,
+          foregroundColor: colors.$2,
+          disabledBackgroundColor: AppColors.line,
+          disabledForegroundColor: AppColors.muted,
+          elevation: tone == AppButtonTone.primary && enabled ? 0 : 0,
+          shadowColor: Colors.transparent,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(AppSpacing.radius),
+            side: tone == AppButtonTone.ghost
+                ? const BorderSide(color: AppColors.line)
+                : BorderSide.none,
+          ),
+          textStyle: AppText.button,
+        ),
+        child: child,
+      ),
     );
   }
 }

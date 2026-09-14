@@ -12,7 +12,7 @@ class AppConfig {
       return Uri.parse(_apiBaseUrlFromEnv).host;
     }
     if (devLanHost.isNotEmpty) return devLanHost;
-    return '192.168.1.125';
+    return '192.168.100.43';
   }
 
   static String get apiBaseUrl {

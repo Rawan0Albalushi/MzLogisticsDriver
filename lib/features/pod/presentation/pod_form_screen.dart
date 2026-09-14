@@ -9,9 +9,11 @@ import '../../../core/api/api_exception.dart';
 import '../../../core/l10n/locale_controller.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../core/theme/app_spacing.dart';
+import '../../../core/theme/app_text.dart';
 import '../../../shared/widgets/app_button.dart';
 import '../../../shared/widgets/app_text_field.dart';
 import '../../../shared/widgets/async_states.dart';
+import '../../../shared/widgets/page_header.dart';
 import '../../tracking/data/location_service.dart';
 import '../../trip_details/providers/trip_details_providers.dart';
 import '../../trips/data/trips_repository.dart';
@@ -151,8 +153,14 @@ class _PodFormScreenState extends ConsumerState<PodFormScreen> {
     _seedFromTrip();
 
     return Scaffold(
-      appBar: AppBar(title: Text(strings.t('pod.title'))),
-      body: tripAsync.when(
+      body: Column(
+        children: [
+          PageHeader(
+            title: strings.t('pod.title'),
+            showBack: true,
+          ),
+          Expanded(
+            child: tripAsync.when(
         loading: () => LoadingState(message: strings.t('state.loading')),
         error: (error, _) => ErrorState(
           message: errorMessageFor(
@@ -172,6 +180,7 @@ class _PodFormScreenState extends ConsumerState<PodFormScreen> {
                 controller: _receiver,
                 textInputAction: TextInputAction.next,
                 errorText: _receiverError,
+                prefixIcon: Icons.person_outline_rounded,
               ),
               const SizedBox(height: AppSpacing.md),
               AppTextField(
@@ -179,6 +188,7 @@ class _PodFormScreenState extends ConsumerState<PodFormScreen> {
                 controller: _otp,
                 keyboardType: TextInputType.number,
                 errorText: _otpError,
+                prefixIcon: Icons.pin_outlined,
                 inputFormatters: [
                   FilteringTextInputFormatter.digitsOnly,
                   LengthLimitingTextInputFormatter(6),
@@ -190,6 +200,7 @@ class _PodFormScreenState extends ConsumerState<PodFormScreen> {
                 controller: _quantity,
                 keyboardType: const TextInputType.numberWithOptions(decimal: true),
                 errorText: _quantityError,
+                prefixIcon: Icons.scale_outlined,
               ),
               const SizedBox(height: AppSpacing.md),
               AppTextField(
@@ -200,17 +211,55 @@ class _PodFormScreenState extends ConsumerState<PodFormScreen> {
               const SizedBox(height: AppSpacing.lg),
               Text(
                 strings.t('pod.photos'),
-                style: const TextStyle(fontWeight: FontWeight.w700),
+                style: AppText.title,
               ),
-              const SizedBox(height: 8),
+              const SizedBox(height: 4),
+              Text(
+                strings.t('pod.photos_hint'),
+                style: AppText.label,
+              ),
+              const SizedBox(height: 12),
               Wrap(
                 spacing: 8,
                 runSpacing: 8,
                 children: [
                   for (var i = 0; i < _photos.length; i++)
-                    Chip(
-                      label: Text(_photos[i].name),
-                      onDeleted: () => setState(() => _photos.removeAt(i)),
+                    Container(
+                      width: 108,
+                      padding: const EdgeInsets.all(10),
+                      decoration: BoxDecoration(
+                        color: AppColors.white,
+                        borderRadius: BorderRadius.circular(AppSpacing.radiusSm),
+                        border: Border.all(color: AppColors.line),
+                      ),
+                      child: Column(
+                        children: [
+                          Align(
+                            alignment: AlignmentDirectional.topEnd,
+                            child: GestureDetector(
+                              onTap: () => setState(() => _photos.removeAt(i)),
+                              child: const Icon(
+                                Icons.close_rounded,
+                                size: 18,
+                                color: AppColors.muted,
+                              ),
+                            ),
+                          ),
+                          const Icon(
+                            Icons.image_outlined,
+                            color: AppColors.primary,
+                            size: 28,
+                          ),
+                          const SizedBox(height: 6),
+                          Text(
+                            _photos[i].name,
+                            maxLines: 2,
+                            overflow: TextOverflow.ellipsis,
+                            textAlign: TextAlign.center,
+                            style: AppText.caption,
+                          ),
+                        ],
+                      ),
                     ),
                 ],
               ),
@@ -242,20 +291,38 @@ class _PodFormScreenState extends ConsumerState<PodFormScreen> {
               ),
               if (_error != null) ...[
                 const SizedBox(height: AppSpacing.md),
-                Text(_error!, style: const TextStyle(color: AppColors.danger)),
+                Text(
+                  _error!,
+                  style: AppText.body.copyWith(color: AppColors.danger),
+                ),
               ],
-              const SizedBox(height: AppSpacing.xl),
-              AppButton(
-                label: _error != null
-                    ? strings.t('action.retry')
-                    : strings.t('pod.submit'),
-                busy: _submitting,
-                onPressed: _submit,
-              ),
+              const SizedBox(height: 80),
             ],
           );
         },
+            ),
+          ),
+        ],
       ),
+      bottomNavigationBar: tripAsync.hasValue
+          ? Material(
+              color: AppColors.white,
+              child: SafeArea(
+                top: false,
+                child: Padding(
+                  padding: const EdgeInsets.fromLTRB(16, 10, 16, 12),
+                  child: AppButton(
+                    label: _error != null
+                        ? strings.t('action.retry')
+                        : strings.t('pod.submit'),
+                    busy: _submitting,
+                    icon: Icons.assignment_turned_in_rounded,
+                    onPressed: _submit,
+                  ),
+                ),
+              ),
+            )
+          : null,
     );
   }
 }
