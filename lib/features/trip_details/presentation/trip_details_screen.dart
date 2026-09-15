@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../../core/config/app_config.dart';
 import '../../../core/l10n/app_strings.dart';
 import '../../../core/l10n/locale_controller.dart';
 import '../../../core/maps/google_maps_links.dart';
@@ -248,7 +249,7 @@ class _TripBody extends StatelessWidget {
             ],
           ),
         ),
-        if (trip.status.canShareLocation) ...[
+        if (AppConfig.liveTrackingEnabled && trip.status.canShareLocation) ...[
           const SizedBox(height: AppSpacing.lg),
           Appear.stagger(
             index: 8,

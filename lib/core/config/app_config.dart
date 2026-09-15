@@ -12,7 +12,7 @@ class AppConfig {
       return Uri.parse(_apiBaseUrlFromEnv).host;
     }
     if (devLanHost.isNotEmpty) return devLanHost;
-    return '192.168.100.43';
+    return '192.168.100.197';
   }
 
   static String get apiBaseUrl {
@@ -26,4 +26,7 @@ class AppConfig {
   static const Duration receiveTimeout = Duration(seconds: 20);
   static const String tokenStorageKey = 'mz_driver_token';
   static const String localeStorageKey = 'mz_driver_locale';
+
+  /// Temporarily hidden until live tracking is ready to ship.
+  static const bool liveTrackingEnabled = false;
 }
