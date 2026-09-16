@@ -67,9 +67,13 @@ class TripDetailsScreen extends ConsumerWidget {
             strings: strings,
             action: action,
             onUpdate: () async {
-              final next = trip.status.nextApiValue;
-              if (next == null) return;
-              await ref.read(statusActionProvider(tripId).notifier).updateTo(next);
+              final updated = await ref
+                  .read(statusActionProvider(tripId).notifier)
+                  .advance();
+              if (!context.mounted || updated == null) return;
+              if (updated.status.needsPod) {
+                context.push('/trips/$tripId/pod');
+              }
             },
             onPod: () => context.push('/trips/$tripId/pod'),
           );
@@ -175,16 +179,9 @@ class _TripBody extends StatelessWidget {
           index: 1,
           child: _FlowTrack(status: trip.status, strings: strings),
         ),
-        if (trip.otpCode != null) ...[
-          const SizedBox(height: AppSpacing.lg),
-          Appear.stagger(
-            index: 2,
-            child: _OtpCard(code: trip.otpCode!, strings: strings),
-          ),
-        ],
         const SizedBox(height: AppSpacing.lg),
         Appear.stagger(
-          index: 3,
+          index: 2,
           child: _InfoCard(
             icon: Icons.inventory_2_outlined,
             title: strings.t('trip.cargo'),
@@ -197,7 +194,7 @@ class _TripBody extends StatelessWidget {
         ),
         const SizedBox(height: 12),
         Appear.stagger(
-          index: 4,
+          index: 3,
           child: _LocationCard(
             title: strings.t('trip.pickup'),
             address: trip.pickupLabel,
@@ -210,7 +207,7 @@ class _TripBody extends StatelessWidget {
         ),
         const SizedBox(height: 12),
         Appear.stagger(
-          index: 5,
+          index: 4,
           child: _LocationCard(
             title: strings.t('trip.delivery'),
             address: trip.deliveryLabel,
@@ -223,7 +220,7 @@ class _TripBody extends StatelessWidget {
         ),
         const SizedBox(height: 12),
         Appear.stagger(
-          index: 6,
+          index: 5,
           child: _InfoCard(
             icon: Icons.scale_outlined,
             title: strings.t('trip.quantity'),
@@ -236,7 +233,7 @@ class _TripBody extends StatelessWidget {
         ),
         const SizedBox(height: 12),
         Appear.stagger(
-          index: 7,
+          index: 6,
           child: _InfoCard(
             icon: Icons.local_shipping_outlined,
             title: strings.t('trip.truck'),
@@ -252,7 +249,7 @@ class _TripBody extends StatelessWidget {
         if (AppConfig.liveTrackingEnabled && trip.status.canShareLocation) ...[
           const SizedBox(height: AppSpacing.lg),
           Appear.stagger(
-            index: 8,
+            index: 7,
             child: TrackingCard(
               tripId: trip.id,
               lastLat: trip.currentLat,
@@ -269,48 +266,6 @@ class _TripBody extends StatelessWidget {
       return strings.t('common.dash');
     }
     return value.toStringAsFixed(value.truncateToDouble() == value ? 0 : 2);
-  }
-}
-
-class _OtpCard extends StatelessWidget {
-  const _OtpCard({required this.code, required this.strings});
-
-  final String code;
-  final AppStrings strings;
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      width: double.infinity,
-      padding: const EdgeInsets.all(AppSpacing.lg),
-      decoration: BoxDecoration(
-        color: AppColors.primarySoft,
-        borderRadius: BorderRadius.circular(AppSpacing.radius),
-        border: Border.all(color: AppColors.primaryMuted),
-      ),
-      child: Column(
-        children: [
-          const IconBubble(
-            icon: Icons.pin_rounded,
-            size: 44,
-            iconSize: 22,
-          ),
-          const SizedBox(height: 10),
-          Text(
-            strings.t('trip.otp'),
-            style: AppText.label,
-          ),
-          const SizedBox(height: 6),
-          Text(code, style: AppText.numeral),
-          const SizedBox(height: 6),
-          Text(
-            strings.t('trip.otp_hint'),
-            textAlign: TextAlign.center,
-            style: AppText.bodyMuted,
-          ),
-        ],
-      ),
-    );
   }
 }
 
@@ -419,7 +374,9 @@ class _FlowTrack extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final current = status.progressIndex;
+    final failed = status == TripStatus.cancelled;
+    final current = failed ? -1 : status.progressIndex;
+    final stages = TripStatus.visibleFlow;
     return Container(
       width: double.infinity,
       padding: const EdgeInsets.all(14),
@@ -432,31 +389,60 @@ class _FlowTrack extends StatelessWidget {
         children: [
           Row(
             children: [
-              for (var i = 0; i < TripStatus.driverFlow.length; i++) ...[
+              for (var i = 0; i < stages.length; i++) ...[
                 Expanded(
                   child: _FlowSegment(
                     filled: i < current,
                     active: i == current,
+                    failed: failed,
                   ),
                 ),
-                if (i < TripStatus.driverFlow.length - 1)
-                  const SizedBox(width: 4),
+                if (i < stages.length - 1) const SizedBox(width: 4),
               ],
             ],
           ),
           const SizedBox(height: 10),
           Row(
             children: [
-              const Icon(
+              for (var i = 0; i < stages.length; i++) ...[
+                Expanded(
+                  child: Text(
+                    strings.t(stages[i].labelKey),
+                    textAlign: TextAlign.center,
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
+                    style: AppText.caption.copyWith(
+                      color: failed
+                          ? AppColors.danger
+                          : i == current
+                              ? AppColors.primaryDark
+                              : i < current
+                                  ? AppColors.ink
+                                  : AppColors.muted,
+                      fontWeight: i == current || i < current
+                          ? FontWeight.w700
+                          : FontWeight.w500,
+                    ),
+                  ),
+                ),
+              ],
+            ],
+          ),
+          const SizedBox(height: 10),
+          Row(
+            children: [
+              Icon(
                 Icons.timeline_rounded,
                 size: 16,
-                color: AppColors.primary,
+                color: failed ? AppColors.danger : AppColors.primary,
               ),
               const SizedBox(width: 6),
               Expanded(
                 child: Text(
                   strings.t(status.labelKey),
-                  style: AppText.title.copyWith(color: AppColors.primaryDark),
+                  style: AppText.title.copyWith(
+                    color: failed ? AppColors.danger : AppColors.primaryDark,
+                  ),
                 ),
               ),
             ],
@@ -468,14 +454,23 @@ class _FlowTrack extends StatelessWidget {
 }
 
 class _FlowSegment extends StatelessWidget {
-  const _FlowSegment({required this.filled, required this.active});
+  const _FlowSegment({
+    required this.filled,
+    required this.active,
+    this.failed = false,
+  });
 
   final bool filled;
   final bool active;
+  final bool failed;
 
   @override
   Widget build(BuildContext context) {
-    final base = filled || active ? AppColors.primary : AppColors.line;
+    final base = failed
+        ? AppColors.danger
+        : filled || active
+            ? AppColors.primary
+            : AppColors.line;
     return Container(
       height: 7,
       decoration: BoxDecoration(

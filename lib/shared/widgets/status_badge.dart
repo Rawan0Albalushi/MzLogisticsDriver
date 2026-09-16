@@ -18,10 +18,10 @@ class StatusBadge extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final color = switch (status) {
-      TripStatus.completed || TripStatus.delivered => AppColors.success,
+    final color = switch (status.displayStage) {
+      TripStatus.delivered => AppColors.success,
       TripStatus.cancelled => AppColors.danger,
-      TripStatus.inTransit || TripStatus.arrived => AppColors.primary,
+      TripStatus.inTransit => AppColors.primary,
       _ => light ? AppColors.white : AppColors.primary,
     };
 

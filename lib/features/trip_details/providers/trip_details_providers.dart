@@ -50,4 +50,35 @@ class StatusActionController
       return false;
     }
   }
+
+  Future<Trip?> advance() async {
+    state = const StatusActionState(submitting: true);
+    try {
+      final repo = ref.read(tripsRepositoryProvider);
+      var trip = ref.read(tripDetailsProvider(arg)).valueOrNull ??
+          await repo.show(arg);
+      final steps = trip.status.advanceApiValues;
+      if (steps.isEmpty) {
+        state = const StatusActionState();
+        return trip;
+      }
+      for (final next in steps) {
+        trip = await repo.updateStatus(arg, next);
+      }
+      ref.invalidate(tripDetailsProvider(arg));
+      ref.invalidate(tripsListProvider);
+      ref.invalidate(completedTripsProvider);
+      state = const StatusActionState();
+      return trip;
+    } on ApiException catch (error) {
+      state = StatusActionState(
+        error: error.message,
+        offline: error.isOffline,
+      );
+      return null;
+    } catch (error) {
+      state = StatusActionState(error: error.toString());
+      return null;
+    }
+  }
 }

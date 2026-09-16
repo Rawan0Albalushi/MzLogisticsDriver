@@ -63,9 +63,6 @@ class _PodFormScreenState extends ConsumerState<PodFormScreen> {
       if (!mounted) {
         return;
       }
-      if (trip.otpCode != null && _otp.text.isEmpty) {
-        _otp.text = trip.otpCode!;
-      }
       if (trip.plannedQuantity != null && _quantity.text.isEmpty) {
         _quantity.text = trip.plannedQuantity!.toString();
       }
@@ -193,6 +190,11 @@ class _PodFormScreenState extends ConsumerState<PodFormScreen> {
                   FilteringTextInputFormatter.digitsOnly,
                   LengthLimitingTextInputFormatter(6),
                 ],
+              ),
+              const SizedBox(height: 6),
+              Text(
+                strings.t('pod.otp_hint'),
+                style: AppText.label,
               ),
               const SizedBox(height: AppSpacing.md),
               AppTextField(

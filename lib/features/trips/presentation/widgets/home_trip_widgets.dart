@@ -24,7 +24,7 @@ class HomeHeroTrip extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final total = TripStatus.driverFlow.length;
+    final total = TripStatus.visibleFlow.length;
     final progress =
         ((trip.status.progressIndex + 1) / total).clamp(0.12, 1.0);
     final date = _tripDate(context, trip);

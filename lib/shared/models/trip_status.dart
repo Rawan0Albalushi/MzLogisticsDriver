@@ -10,14 +10,12 @@ enum TripStatus {
   cancelled,
   unknown;
 
-  static const List<TripStatus> driverFlow = [
+  /// Driver-facing stages. Internal API statuses collapse into these four.
+  static const List<TripStatus> visibleFlow = [
     assigned,
-    arrivedAtPickup,
     loaded,
     inTransit,
-    arrived,
     delivered,
-    completed,
   ];
 
   static const Set<TripStatus> activeStatuses = {
@@ -59,25 +57,35 @@ enum TripStatus {
     };
   }
 
-  String get labelKey => 'status.$apiValue';
-
-  String? get nextApiValue {
+  TripStatus get displayStage {
     return switch (this) {
-      assigned => arrivedAtPickup.apiValue,
-      arrivedAtPickup => loaded.apiValue,
-      loaded => inTransit.apiValue,
-      inTransit => arrived.apiValue,
-      delivered => completed.apiValue,
-      _ => null,
+      loaded => loaded,
+      inTransit || arrived => inTransit,
+      delivered || completed => delivered,
+      cancelled => cancelled,
+      _ => assigned,
+    };
+  }
+
+  String get labelKey => 'status.${displayStage.apiValue}';
+
+  /// Sequential API values needed to reach the next visible stage.
+  List<String> get advanceApiValues {
+    return switch (this) {
+      assigned => [arrivedAtPickup.apiValue, loaded.apiValue],
+      arrivedAtPickup => [loaded.apiValue],
+      loaded => [inTransit.apiValue],
+      inTransit => [arrived.apiValue],
+      delivered => [completed.apiValue],
+      _ => const [],
     };
   }
 
   String? get nextActionKey {
     return switch (this) {
-      assigned => 'action.arrived_at_pickup',
-      arrivedAtPickup => 'action.loaded',
+      assigned || arrivedAtPickup => 'action.loaded',
       loaded => 'action.in_transit',
-      inTransit => 'action.arrived',
+      inTransit => 'action.record_pod',
       delivered => 'action.completed',
       _ => null,
     };
@@ -90,7 +98,7 @@ enum TripStatus {
   bool get canShareLocation => isActive;
 
   int get progressIndex {
-    final index = driverFlow.indexOf(this);
+    final index = visibleFlow.indexOf(displayStage);
     return index < 0 ? 0 : index;
   }
 }
