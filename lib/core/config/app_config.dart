@@ -29,4 +29,20 @@ class AppConfig {
 
   /// Temporarily hidden until live tracking is ready to ship.
   static const bool liveTrackingEnabled = false;
+
+  /// Automatic background location sharing for active trips. When enabled the
+  /// driver app runs a foreground service that keeps posting the driver's GPS
+  /// position for the active trip even while the app is backgrounded or the
+  /// task has been swiped away.
+  static const bool backgroundTrackingEnabled = true;
+
+  /// How often the background service captures and uploads a location fix.
+  static const Duration backgroundTrackingInterval = Duration(seconds: 15);
+
+  /// SharedPreferences key holding the trip id the background service reports
+  /// for. Shared with the background isolate, which cannot reach Riverpod.
+  static const String activeTripStorageKey = 'mz_driver_active_trip';
+
+  /// Android notification channel used by the tracking foreground service.
+  static const String trackingChannelId = 'mz_driver_tracking';
 }

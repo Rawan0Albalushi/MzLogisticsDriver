@@ -7,7 +7,19 @@
 	<key>NSLocationWhenInUseUsageDescription</key>
 	<string>MZ Logistics uses your location to share trip progress with your company.</string>
 	<key>NSLocationAlwaysAndWhenInUseUsageDescription</key>
-	<string>MZ Logistics uses your location to share trip progress with your company.</string>
+	<string>MZ Logistics shares your location during active trips even when the app is in the background so your company can track delivery progress.</string>
+	<key>NSLocationAlwaysUsageDescription</key>
+	<string>MZ Logistics shares your location during active trips even when the app is in the background so your company can track delivery progress.</string>
+	<key>UIBackgroundModes</key>
+	<array>
+		<string>location</string>
+		<string>fetch</string>
+		<string>processing</string>
+	</array>
+	<key>BGTaskSchedulerPermittedIdentifiers</key>
+	<array>
+		<string>dev.flutter.background.refresh</string>
+	</array>
 	<key>NSCameraUsageDescription</key>
 	<string>MZ Logistics uses the camera to capture proof of delivery photos.</string>
 	<key>NSPhotoLibraryUsageDescription</key>

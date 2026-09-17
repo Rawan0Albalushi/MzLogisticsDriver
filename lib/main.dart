@@ -8,6 +8,7 @@ import 'core/config/app_config.dart';
 import 'core/l10n/app_strings.dart';
 import 'core/l10n/locale_controller.dart';
 import 'core/theme/app_colors.dart';
+import 'features/tracking/data/background_location_service.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -23,6 +24,8 @@ Future<void> main() async {
   final prefs = await SharedPreferences.getInstance();
   final languageCode = prefs.getString(AppConfig.localeStorageKey) ?? 'ar';
   final strings = await AppStrings.load(languageCode);
+
+  await BackgroundLocationService.initialize();
 
   runApp(
     ProviderScope(

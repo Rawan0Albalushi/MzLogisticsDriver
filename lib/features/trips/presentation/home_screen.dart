@@ -11,7 +11,9 @@ import '../../../core/theme/app_text.dart';
 import '../../../shared/widgets/appear.dart';
 import '../../../shared/widgets/async_states.dart';
 import '../../../shared/widgets/page_header.dart';
+import '../../../shared/models/trip.dart';
 import '../../auth/providers/auth_controller.dart';
+import '../../tracking/providers/background_tracking_controller.dart';
 import '../providers/trips_providers.dart';
 import 'widgets/home_trip_widgets.dart';
 
@@ -22,6 +24,16 @@ class HomeScreen extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final strings = ref.watch(stringsProvider);
     final locale = ref.watch(localeControllerProvider).locale;
+
+    // Keep automatic background location sharing aligned with the active trip.
+    ref.listen<AsyncValue<List<Trip>>>(tripsListProvider, (_, next) {
+      final items = next.valueOrNull;
+      if (items == null) return;
+      ref
+          .read(backgroundTrackingProvider)
+          .syncActiveTrip(splitHomeTrips(items).current);
+    });
+
     final trips = ref.watch(tripsListProvider);
     final dashboard = ref.watch(dashboardProvider);
     final user = ref.watch(authControllerProvider).valueOrNull;

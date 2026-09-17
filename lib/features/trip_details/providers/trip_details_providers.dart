@@ -2,6 +2,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../core/api/api_exception.dart';
 import '../../../shared/models/trip.dart';
+import '../../tracking/providers/background_tracking_controller.dart';
 import '../../trips/data/trips_repository.dart';
 import '../../trips/providers/trips_providers.dart';
 
@@ -68,6 +69,10 @@ class StatusActionController
       ref.invalidate(tripDetailsProvider(arg));
       ref.invalidate(tripsListProvider);
       ref.invalidate(completedTripsProvider);
+      // Start sharing once the trip is active; stop once it is finished.
+      await ref
+          .read(backgroundTrackingProvider)
+          .syncActiveTrip(trip.status.canShareLocation ? trip : null);
       state = const StatusActionState();
       return trip;
     } on ApiException catch (error) {
