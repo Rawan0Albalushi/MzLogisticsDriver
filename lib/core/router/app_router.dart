@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../features/auth/presentation/activate_screen.dart';
 import '../../features/auth/presentation/login_screen.dart';
 import '../../features/auth/providers/auth_controller.dart';
 import '../../features/notifications/presentation/notifications_screen.dart';
@@ -28,10 +29,11 @@ final routerProvider = Provider<GoRouter>((ref) {
       }
       final loggedIn = auth.valueOrNull != null;
       final loggingIn = state.matchedLocation == '/login';
-      if (!loggedIn && !loggingIn) {
+      final activating = state.matchedLocation == '/activate';
+      if (!loggedIn && !loggingIn && !activating) {
         return '/login';
       }
-      if (loggedIn && loggingIn) {
+      if (loggedIn && (loggingIn || activating)) {
         return '/trips';
       }
       return null;
@@ -40,6 +42,12 @@ final routerProvider = Provider<GoRouter>((ref) {
       GoRoute(
         path: '/login',
         builder: (context, state) => const LoginScreen(),
+      ),
+      GoRoute(
+        path: '/activate',
+        builder: (context, state) => ActivateScreen(
+          initialToken: state.uri.queryParameters['token'],
+        ),
       ),
       GoRoute(
         path: '/trips/:id',

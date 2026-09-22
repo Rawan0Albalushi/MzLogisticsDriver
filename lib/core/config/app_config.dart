@@ -44,5 +44,6 @@ class AppConfig {
   static const String activeTripStorageKey = 'mz_driver_active_trip';
 
   /// Android notification channel used by the tracking foreground service.
+  /// Created in `DriverApplication`; the id must match that class.
   static const String trackingChannelId = 'mz_driver_tracking';
 }

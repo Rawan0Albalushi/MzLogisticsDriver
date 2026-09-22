@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="tracking_channel_name">Trip location</string>
+    <string name="tracking_channel_description">Shown while MoveX shares your live location for an active trip.</string>
+</resources>

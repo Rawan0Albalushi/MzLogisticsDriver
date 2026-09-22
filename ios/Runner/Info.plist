@@ -5,11 +5,11 @@
 	<key>CADisableMinimumFrameDurationOnPhone</key>
 	<true/>
 	<key>NSLocationWhenInUseUsageDescription</key>
-	<string>MZ Logistics uses your location to share trip progress with your company.</string>
+	<string>MoveX uses your location to share trip progress with your company.</string>
 	<key>NSLocationAlwaysAndWhenInUseUsageDescription</key>
-	<string>MZ Logistics shares your location during active trips even when the app is in the background so your company can track delivery progress.</string>
+	<string>MoveX shares your location during active trips even when the app is in the background so your company can track delivery progress.</string>
 	<key>NSLocationAlwaysUsageDescription</key>
-	<string>MZ Logistics shares your location during active trips even when the app is in the background so your company can track delivery progress.</string>
+	<string>MoveX shares your location during active trips even when the app is in the background so your company can track delivery progress.</string>
 	<key>UIBackgroundModes</key>
 	<array>
 		<string>location</string>
@@ -21,9 +21,9 @@
 		<string>dev.flutter.background.refresh</string>
 	</array>
 	<key>NSCameraUsageDescription</key>
-	<string>MZ Logistics uses the camera to capture proof of delivery photos.</string>
+	<string>MoveX uses the camera to capture proof of delivery photos.</string>
 	<key>NSPhotoLibraryUsageDescription</key>
-	<string>MZ Logistics uses your photos for proof of delivery.</string>
+	<string>MoveX uses your photos for proof of delivery.</string>
 	<key>NSAppTransportSecurity</key>
 	<dict>
 		<key>NSAllowsLocalNetworking</key>
@@ -34,7 +34,7 @@
 	<key>CFBundleDevelopmentRegion</key>
 	<string>$(DEVELOPMENT_LANGUAGE)</string>
 	<key>CFBundleDisplayName</key>
-	<string>MZ Driver</string>
+	<string>MoveX</string>
 	<key>CFBundleExecutable</key>
 	<string>$(EXECUTABLE_NAME)</string>
 	<key>CFBundleIdentifier</key>
@@ -92,6 +92,21 @@
 		<string>UIInterfaceOrientationPortraitUpsideDown</string>
 		<string>UIInterfaceOrientationLandscapeLeft</string>
 		<string>UIInterfaceOrientationLandscapeRight</string>
+	</array>
+	<key>FlutterDeepLinkingEnabled</key>
+	<true/>
+	<key>CFBundleURLTypes</key>
+	<array>
+		<dict>
+			<key>CFBundleTypeRole</key>
+			<string>Editor</string>
+			<key>CFBundleURLName</key>
+			<string>mzdriver.activate</string>
+			<key>CFBundleURLSchemes</key>
+			<array>
+				<string>mzdriver</string>
+			</array>
+		</dict>
 	</array>
 </dict>
 </plist>

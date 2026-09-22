@@ -76,7 +76,6 @@ enum TripStatus {
       arrivedAtPickup => [loaded.apiValue],
       loaded => [inTransit.apiValue],
       inTransit => [arrived.apiValue],
-      delivered => [completed.apiValue],
       _ => const [],
     };
   }
@@ -86,7 +85,6 @@ enum TripStatus {
       assigned || arrivedAtPickup => 'action.loaded',
       loaded => 'action.in_transit',
       inTransit => 'action.record_pod',
-      delivered => 'action.completed',
       _ => null,
     };
   }

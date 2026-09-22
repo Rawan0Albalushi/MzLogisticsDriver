@@ -1,6 +1,6 @@
 {
-    "name": "mz_logistics_driver_app",
-    "short_name": "mz_logistics_driver_app",
+    "name": "MoveX",
+    "short_name": "MoveX",
     "start_url": ".",
     "display": "standalone",
     "background_color": "#0175C2",

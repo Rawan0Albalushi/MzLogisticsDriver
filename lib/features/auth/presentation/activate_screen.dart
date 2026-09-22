@@ -3,7 +3,6 @@ import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
-import '../../../core/config/app_config.dart';
 import '../../../core/l10n/locale_controller.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../core/theme/app_spacing.dart';
@@ -15,44 +14,73 @@ import '../../../shared/widgets/async_states.dart';
 import '../../../shared/widgets/brand_mark.dart';
 import '../providers/auth_controller.dart';
 
-class LoginScreen extends ConsumerStatefulWidget {
-  const LoginScreen({super.key});
+class ActivateScreen extends ConsumerStatefulWidget {
+  const ActivateScreen({super.key, this.initialToken});
+
+  final String? initialToken;
 
   @override
-  ConsumerState<LoginScreen> createState() => _LoginScreenState();
+  ConsumerState<ActivateScreen> createState() => _ActivateScreenState();
 }
 
-class _LoginScreenState extends ConsumerState<LoginScreen> {
-  late final TextEditingController _email;
+class _ActivateScreenState extends ConsumerState<ActivateScreen> {
+  late final TextEditingController _token;
   late final TextEditingController _password;
+  late final TextEditingController _confirm;
   bool _submitting = false;
   String? _error;
 
   @override
   void initState() {
     super.initState();
-    _email = TextEditingController(text: AppConfig.demoEmail);
-    _password = TextEditingController(text: AppConfig.demoPassword);
+    _token = TextEditingController(text: _extractToken(widget.initialToken ?? ''));
+    _password = TextEditingController();
+    _confirm = TextEditingController();
   }
 
   @override
   void dispose() {
-    _email.dispose();
+    _token.dispose();
     _password.dispose();
+    _confirm.dispose();
     super.dispose();
+  }
+
+  String _extractToken(String raw) {
+    final value = raw.trim();
+    final uri = Uri.tryParse(value);
+    final fromQuery = uri?.queryParameters['token'];
+    if (fromQuery != null && fromQuery.isNotEmpty) {
+      return fromQuery;
+    }
+    return value;
   }
 
   Future<void> _submit() async {
     if (_submitting) return;
     final strings = ref.read(stringsProvider);
+    final token = _extractToken(_token.text);
+    if (token.isEmpty) {
+      setState(() => _error = strings.t('activate.token_required'));
+      return;
+    }
+    if (_password.text.length < 8) {
+      setState(() => _error = strings.t('activate.password_length'));
+      return;
+    }
+    if (_password.text != _confirm.text) {
+      setState(() => _error = strings.t('activate.password_mismatch'));
+      return;
+    }
+
     setState(() {
       _submitting = true;
       _error = null;
     });
     try {
-      await ref.read(authControllerProvider.notifier).login(
-            _email.text.trim(),
-            _password.text,
+      await ref.read(authControllerProvider.notifier).activate(
+            token: token,
+            password: _password.text,
           );
     } catch (error) {
       if (!mounted) return;
@@ -61,7 +89,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
         _error = errorMessageFor(
           error,
           strings.t('state.offline'),
-          strings.t('login.failed'),
+          strings.t('activate.failed'),
         );
       });
     } finally {
@@ -93,25 +121,25 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                     const Appear(
                       child: Align(
                         alignment: Alignment.center,
-                        child: BrandMark(size: 64, pulse: true),
+                        child: BrandMark(size: 64),
                       ),
                     ),
                     const SizedBox(height: 18),
                     Appear.stagger(
                       index: 1,
                       child: Text(
-                        strings.t('app.name'),
+                        strings.t('activate.title'),
                         textAlign: TextAlign.center,
                         style: AppText.display,
                       ),
                     ),
-                    const SizedBox(height: 4),
+                    const SizedBox(height: 6),
                     Appear.stagger(
                       index: 2,
                       child: Text(
-                        strings.t('app.role'),
+                        strings.t('activate.subtitle'),
                         textAlign: TextAlign.center,
-                        style: AppText.title.copyWith(color: AppColors.primary),
+                        style: AppText.bodyMuted,
                       ),
                     ),
                     const SizedBox(height: AppSpacing.xl),
@@ -123,40 +151,28 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                           color: AppColors.white,
                           borderRadius: BorderRadius.circular(AppSpacing.radiusLg),
                           border: Border.all(color: AppColors.line),
-                          boxShadow: const [
-                            BoxShadow(
-                              color: Color(0x0A1A120E),
-                              blurRadius: 16,
-                              offset: Offset(0, 8),
-                            ),
-                          ],
                         ),
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.stretch,
                           children: [
-                            Text(
-                              strings.t('login.title'),
-                              textAlign: TextAlign.center,
-                              style: AppText.heading,
-                            ),
-                            const SizedBox(height: 6),
-                            Text(
-                              strings.t('login.subtitle'),
-                              textAlign: TextAlign.center,
-                              style: AppText.bodyMuted,
-                            ),
-                            const SizedBox(height: AppSpacing.lg),
                             AppTextField(
-                              label: strings.t('login.identifier'),
-                              controller: _email,
-                              keyboardType: TextInputType.text,
+                              label: strings.t('activate.token'),
+                              controller: _token,
                               textInputAction: TextInputAction.next,
-                              prefixIcon: Icons.phone_iphone_rounded,
+                              prefixIcon: Icons.link_rounded,
                             ),
                             const SizedBox(height: AppSpacing.md),
                             AppTextField(
-                              label: strings.t('login.password'),
+                              label: strings.t('activate.password'),
                               controller: _password,
+                              obscureText: true,
+                              textInputAction: TextInputAction.next,
+                              prefixIcon: Icons.lock_outline_rounded,
+                            ),
+                            const SizedBox(height: AppSpacing.md),
+                            AppTextField(
+                              label: strings.t('activate.confirm'),
+                              controller: _confirm,
                               obscureText: true,
                               textInputAction: TextInputAction.done,
                               prefixIcon: Icons.lock_outline_rounded,
@@ -164,43 +180,23 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                             ),
                             if (_error != null) ...[
                               const SizedBox(height: AppSpacing.md),
-                              Row(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  const Icon(
-                                    Icons.error_outline_rounded,
-                                    color: AppColors.danger,
-                                    size: 18,
-                                  ),
-                                  const SizedBox(width: 8),
-                                  Expanded(
-                                    child: Text(
-                                      _error!,
-                                      style: AppText.body.copyWith(
-                                        color: AppColors.danger,
-                                      ),
-                                    ),
-                                  ),
-                                ],
+                              Text(
+                                _error!,
+                                textAlign: TextAlign.center,
+                                style: AppText.body.copyWith(color: AppColors.danger),
                               ),
                             ],
                             const SizedBox(height: AppSpacing.lg),
                             AppButton(
-                              label: strings.t('login.submit'),
+                              label: strings.t('activate.submit'),
                               busy: _submitting,
-                              icon: Icons.login_rounded,
+                              icon: Icons.verified_user_outlined,
                               onPressed: _submit,
                             ),
                             const SizedBox(height: AppSpacing.md),
                             TextButton(
-                              onPressed: () => context.go('/activate'),
-                              child: Text(strings.t('login.activate')),
-                            ),
-                            const SizedBox(height: AppSpacing.sm),
-                            Text(
-                              strings.t('login.demo_hint'),
-                              textAlign: TextAlign.center,
-                              style: AppText.label,
+                              onPressed: () => context.go('/login'),
+                              child: Text(strings.t('activate.back_to_login')),
                             ),
                           ],
                         ),

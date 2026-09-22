@@ -2,6 +2,7 @@ class ApiEndpoints {
   const ApiEndpoints._();
 
   static const String login = '/auth/login';
+  static const String activateDriver = '/auth/driver/activate';
   static const String logout = '/auth/logout';
   static const String me = '/auth/me';
   static const String dashboard = '/dashboard';

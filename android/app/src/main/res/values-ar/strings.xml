@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="tracking_channel_name">موقع الرحلة</string>
+    <string name="tracking_channel_description">يظهر أثناء مشاركة موقعك المباشر للرحلة الحالية.</string>
+</resources>

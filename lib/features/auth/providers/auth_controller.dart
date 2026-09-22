@@ -23,8 +23,19 @@ class AuthController extends AsyncNotifier<User?> {
     }
   }
 
-  Future<void> login(String email, String password) async {
-    final user = await ref.read(authRepositoryProvider).login(email, password);
+  Future<void> login(String identifier, String password) async {
+    final user = await ref.read(authRepositoryProvider).login(identifier, password);
+    state = AsyncData(user);
+  }
+
+  Future<void> activate({
+    required String token,
+    required String password,
+  }) async {
+    final user = await ref.read(authRepositoryProvider).activate(
+          token: token,
+          password: password,
+        );
     state = AsyncData(user);
   }
 

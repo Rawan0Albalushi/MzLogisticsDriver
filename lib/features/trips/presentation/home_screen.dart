@@ -8,14 +8,16 @@ import '../../../core/l10n/locale_controller.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../core/theme/app_spacing.dart';
 import '../../../core/theme/app_text.dart';
+import '../../../shared/models/trip.dart';
 import '../../../shared/widgets/appear.dart';
 import '../../../shared/widgets/async_states.dart';
 import '../../../shared/widgets/page_header.dart';
-import '../../../shared/models/trip.dart';
+import '../../../shared/widgets/section_label.dart';
 import '../../auth/providers/auth_controller.dart';
 import '../../tracking/providers/background_tracking_controller.dart';
 import '../providers/trips_providers.dart';
 import 'widgets/home_trip_widgets.dart';
+import 'widgets/trip_summary_card.dart';
 
 class HomeScreen extends ConsumerWidget {
   const HomeScreen({super.key});
@@ -69,18 +71,19 @@ class HomeScreen extends ConsumerWidget {
                     items,
                     dashboardActive: dashboard.valueOrNull?.tripsActive,
                   );
-                  final card = home.current == null
+                  final current = home.current;
+                  final waiting = home.assigned;
+                  final card = current == null
                       ? HomeEmptyTrip(
                           title: strings.t('home.no_current'),
                           subtitle: strings.t('home.no_current_hint'),
                         )
                       : HomeHeroTrip(
-                          trip: home.current!,
+                          trip: current,
                           strings: strings,
-                          onTap: () => context.push(
-                            '/trips/${home.current!.id}',
-                          ),
+                          onTap: () => context.push('/trips/${current.id}'),
                         );
+                  final onlyEmpty = current == null && waiting.isEmpty;
                   return Column(
                     children: [
                       Appear(
@@ -125,6 +128,50 @@ class HomeScreen extends ConsumerWidget {
                           },
                           child: LayoutBuilder(
                             builder: (context, constraints) {
+                              final content = Padding(
+                                padding: const EdgeInsets.fromLTRB(
+                                  AppSpacing.lg,
+                                  20,
+                                  AppSpacing.lg,
+                                  24,
+                                ),
+                                child: Column(
+                                  crossAxisAlignment:
+                                      CrossAxisAlignment.stretch,
+                                  children: [
+                                    if (current != null &&
+                                        waiting.isNotEmpty)
+                                      SectionLabel(
+                                        label: strings.t('home.current_trip'),
+                                      ),
+                                    card,
+                                    if (waiting.isNotEmpty) ...[
+                                      const SizedBox(height: 28),
+                                      SectionLabel(
+                                        label: strings.t('home.assigned'),
+                                      ),
+                                      for (var i = 0; i < waiting.length; i++)
+                                        Padding(
+                                          padding: EdgeInsets.only(
+                                            bottom: i == waiting.length - 1
+                                                ? 0
+                                                : 12,
+                                          ),
+                                          child: Appear.stagger(
+                                            index: i + 1,
+                                            child: TripSummaryCard(
+                                              trip: waiting[i],
+                                              strings: strings,
+                                              onTap: () => context.push(
+                                                '/trips/${waiting[i].id}',
+                                              ),
+                                            ),
+                                          ),
+                                        ),
+                                    ],
+                                  ],
+                                ),
+                              );
                               return SingleChildScrollView(
                                 physics:
                                     const AlwaysScrollableScrollPhysics(),
@@ -132,17 +179,9 @@ class HomeScreen extends ConsumerWidget {
                                   constraints: BoxConstraints(
                                     minHeight: constraints.maxHeight,
                                   ),
-                                  child: Center(
-                                    child: Padding(
-                                      padding: const EdgeInsets.fromLTRB(
-                                        AppSpacing.lg,
-                                        16,
-                                        AppSpacing.lg,
-                                        24,
-                                      ),
-                                      child: card,
-                                    ),
-                                  ),
+                                  child: onlyEmpty
+                                      ? Center(child: content)
+                                      : content,
                                 ),
                               );
                             },

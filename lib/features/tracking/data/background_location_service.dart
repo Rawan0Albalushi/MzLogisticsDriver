@@ -36,9 +36,10 @@ class BackgroundLocationService {
         isForegroundMode: true,
         autoStartOnBoot: false,
         notificationChannelId: AppConfig.trackingChannelId,
-        initialNotificationTitle: 'MZ Driver',
+        initialNotificationTitle: 'MoveX',
         initialNotificationContent: 'Sharing your live location for the trip.',
         foregroundServiceNotificationId: _notificationId,
+        foregroundServiceTypes: const [AndroidForegroundType.location],
       ),
       iosConfiguration: IosConfiguration(
         autoStart: false,

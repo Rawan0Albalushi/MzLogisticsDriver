@@ -19,10 +19,10 @@ class AuthRepository {
   final ApiClient _client;
   final TokenStorage _tokens;
 
-  Future<User> login(String email, String password) async {
+  Future<User> login(String identifier, String password) async {
     final envelope = await _client.post<Map<String, dynamic>>(
       ApiEndpoints.login,
-      data: {'email': email, 'password': password},
+      data: {'login': identifier, 'email': identifier, 'password': password},
       parse: (raw) => readMap(raw) ?? {},
     );
     final token = readString(envelope.data['token']);
@@ -30,6 +30,27 @@ class AuthRepository {
       throw StateError('Missing token');
     }
     await _tokens.write(token);
+    return User.fromJson(readMap(envelope.data['user']) ?? {});
+  }
+
+  Future<User> activate({
+    required String token,
+    required String password,
+  }) async {
+    final envelope = await _client.post<Map<String, dynamic>>(
+      ApiEndpoints.activateDriver,
+      data: {
+        'token': token,
+        'password': password,
+        'password_confirmation': password,
+      },
+      parse: (raw) => readMap(raw) ?? {},
+    );
+    final accessToken = readString(envelope.data['token']);
+    if (accessToken == null) {
+      throw StateError('Missing token');
+    }
+    await _tokens.write(accessToken);
     return User.fromJson(readMap(envelope.data['user']) ?? {});
   }
 

@@ -78,9 +78,9 @@ class TripSummaryCard extends StatelessWidget {
                 ),
                 const SizedBox(width: 4),
                 const Icon(
-                  Icons.chevron_right_rounded,
+                  Icons.arrow_forward_rounded,
                   color: AppColors.muted,
-                  size: 22,
+                  size: 20,
                 ),
               ],
             ),

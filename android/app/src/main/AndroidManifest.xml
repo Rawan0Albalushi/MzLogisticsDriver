@@ -10,8 +10,8 @@
     <uses-permission android:name="android.permission.WAKE_LOCK"/>
     <uses-permission android:name="android.permission.CAMERA"/>
     <application
-        android:label="MZ Driver"
-        android:name="${applicationName}"
+        android:label="MoveX"
+        android:name=".DriverApplication"
         android:icon="@mipmap/ic_launcher"
         android:usesCleartextTraffic="true">
         <activity
@@ -35,6 +35,13 @@
                 <action android:name="android.intent.action.MAIN"/>
                 <category android:name="android.intent.category.LAUNCHER"/>
             </intent-filter>
+            <meta-data android:name="flutter_deeplinking_enabled" android:value="true" />
+            <intent-filter>
+                <action android:name="android.intent.action.VIEW"/>
+                <category android:name="android.intent.category.DEFAULT"/>
+                <category android:name="android.intent.category.BROWSABLE"/>
+                <data android:scheme="mzdriver" android:host="activate"/>
+            </intent-filter>
         </activity>
         <!-- Location sharing runs as a foreground service so it keeps posting
              fixes for the active trip while the app is backgrounded or the task
@@ -44,7 +51,7 @@
             android:name="id.flutter.flutter_background_service.BackgroundService"
             android:foregroundServiceType="location"
             android:exported="false"
-            tools:replace="android:foregroundServiceType" />
+            tools:replace="android:foregroundServiceType,android:exported" />
 
         <!-- Don't delete the meta-data below.
              This is used by the Flutter tool to generate GeneratedPluginRegistrant.java -->

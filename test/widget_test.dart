@@ -33,7 +33,8 @@ void main() {
     expect(TripStatus.inTransit.advanceApiValues, ['arrived']);
     expect(TripStatus.arrived.advanceApiValues, isEmpty);
     expect(TripStatus.arrived.needsPod, isTrue);
-    expect(TripStatus.delivered.advanceApiValues, ['completed']);
+    expect(TripStatus.delivered.nextActionKey, isNull);
+    expect(TripStatus.delivered.advanceApiValues, isEmpty);
     expect(TripStatus.completed.advanceApiValues, isEmpty);
     expect(TripStatus.cancelled.advanceApiValues, isEmpty);
   });
