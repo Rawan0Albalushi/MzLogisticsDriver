@@ -83,7 +83,7 @@ class HomeScreen extends ConsumerWidget {
                           strings: strings,
                           onTap: () => context.push('/trips/${current.id}'),
                         );
-                  final onlyEmpty = current == null && waiting.isEmpty;
+                  final centerCard = waiting.isEmpty;
                   return Column(
                     children: [
                       Appear(
@@ -179,7 +179,7 @@ class HomeScreen extends ConsumerWidget {
                                   constraints: BoxConstraints(
                                     minHeight: constraints.maxHeight,
                                   ),
-                                  child: onlyEmpty
+                                  child: centerCard
                                       ? Center(child: content)
                                       : content,
                                 ),
