@@ -1,3 +1,5 @@
+import 'dart:typed_data';
+
 import 'package:dio/dio.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -74,6 +76,25 @@ class ApiClient {
       () => _dio.patch<Map<String, dynamic>>(path, data: data),
       parse,
     );
+  }
+
+  Future<Uint8List> getBytes(String path) async {
+    try {
+      final response = await _dio.get<List<int>>(
+        path,
+        options: Options(
+          responseType: ResponseType.bytes,
+          headers: const {'Accept': '*/*'},
+        ),
+      );
+      final data = response.data;
+      if (data == null || data.isEmpty) {
+        throw const ApiException(message: 'request_failed');
+      }
+      return Uint8List.fromList(data);
+    } on DioException catch (error) {
+      throw _mapDio(error);
+    }
   }
 
   Future<ApiEnvelope<T>> _send<T>(

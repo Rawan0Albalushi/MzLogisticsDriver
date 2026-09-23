@@ -8,6 +8,8 @@ class ProofOfDelivery {
     this.receivedQuantity,
     this.notes,
     this.capturedAt,
+    this.photoCount = 0,
+    this.hasSignature = false,
   });
 
   final int id;
@@ -16,6 +18,10 @@ class ProofOfDelivery {
   final double? receivedQuantity;
   final String? notes;
   final String? capturedAt;
+  final int photoCount;
+  final bool hasSignature;
+
+  bool get hasDocuments => photoCount > 0 || hasSignature;
 
   factory ProofOfDelivery.fromJson(Map<String, dynamic> json) {
     return ProofOfDelivery(
@@ -25,6 +31,15 @@ class ProofOfDelivery {
       receivedQuantity: readDouble(json['received_quantity']),
       notes: readString(json['notes']),
       capturedAt: readString(json['captured_at']),
+      photoCount: _photoCount(json['photo_paths']),
+      hasSignature: readString(json['signature_path']) != null,
     );
+  }
+
+  static int _photoCount(dynamic value) {
+    if (value is List) {
+      return value.length;
+    }
+    return 0;
   }
 }
