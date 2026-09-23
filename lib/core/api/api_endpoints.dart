@@ -13,8 +13,6 @@ class ApiEndpoints {
   static String tripStatus(int id) => '/trips/$id/status';
   static String tripLocation(int id) => '/trips/$id/location';
   static String tripPod(int id) => '/trips/$id/pod';
-  static String tripPodPhoto(int id, int index) => '/trips/$id/pod/photos/$index';
-  static String tripPodSignature(int id) => '/trips/$id/pod/signature';
   static String markNotificationRead(String id) => '/notifications/$id/read';
   static const String markAllNotificationsRead = '/notifications/read-all';
 }

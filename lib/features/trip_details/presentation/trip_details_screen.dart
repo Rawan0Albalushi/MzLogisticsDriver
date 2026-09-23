@@ -18,7 +18,6 @@ import '../../../shared/widgets/status_badge.dart';
 import '../../tracking/presentation/tracking_card.dart';
 import '../providers/trip_details_providers.dart';
 import 'widgets/trip_facts_sheet.dart';
-import 'widgets/trip_pod_documents.dart';
 import 'widgets/trip_progress_track.dart';
 import 'widgets/trip_route_panel.dart';
 
@@ -244,17 +243,6 @@ class _TripBody extends StatelessWidget {
           index: 2,
           child: TripFactsSheet(trip: trip, strings: strings),
         ),
-        if (trip.proofOfDelivery != null) ...[
-          const SizedBox(height: AppSpacing.md),
-          Appear.stagger(
-            index: 3,
-            child: TripPodDocuments(
-              tripId: trip.id,
-              pod: trip.proofOfDelivery!,
-              strings: strings,
-            ),
-          ),
-        ],
         if (showTracking) ...[
           const SizedBox(height: AppSpacing.md),
           Appear.stagger(
