@@ -49,7 +49,7 @@
   "trip.delivered_qty": "Received",
   "trip.customer": "Customer",
   "trip.plate": "Plate",
-  "trip.date": "Trip date",
+  "trip.date": "Departure",
   "status.unassigned": "Unassigned",
   "status.assigned": "Assigned",
   "status.arrived_at_pickup": "Assigned",

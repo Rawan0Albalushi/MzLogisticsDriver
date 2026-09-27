@@ -4,5 +4,5 @@ String? formatTripDate(String? raw, String locale) {
   if (raw == null || raw.trim().isEmpty) return null;
   final parsed = DateTime.tryParse(raw);
   if (parsed == null) return raw;
-  return DateFormat.yMMMEd(locale).format(parsed.toLocal());
+  return DateFormat.yMMMEd(locale).add_Hm().format(parsed.toLocal());
 }
