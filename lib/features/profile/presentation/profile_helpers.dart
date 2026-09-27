@@ -3,6 +3,7 @@ import 'package:flutter/services.dart';
 import 'package:intl/intl.dart';
 
 import '../../../core/l10n/app_strings.dart';
+import '../../../core/l10n/date_format.dart';
 
 enum LicenseFreshness { ok, soon, expired, unknown }
 
@@ -36,7 +37,7 @@ String formatLicenseDate(String? raw, String locale) {
   if (raw == null || raw.trim().isEmpty) return '';
   final parsed = DateTime.tryParse(raw);
   if (parsed == null) return raw;
-  return DateFormat.yMMMd(locale).format(parsed);
+  return latinDigits(DateFormat.yMMMd(locale).format(parsed));
 }
 
 LicenseFreshness licenseFreshness(String? raw) {
@@ -57,7 +58,6 @@ Future<void> copyProfileValue(
 ) async {
   await Clipboard.setData(ClipboardData(text: value));
   if (!context.mounted) return;
-  ScaffoldMessenger.of(context).showSnackBar(
-    SnackBar(content: Text(strings.t('profile.copied'))),
-  );
+  ScaffoldMessenger.of(context)
+      .showSnackBar(SnackBar(content: Text(strings.t('profile.copied'))));
 }

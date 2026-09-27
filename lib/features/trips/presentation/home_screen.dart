@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 
+import '../../../core/l10n/date_format.dart';
 import '../../../core/l10n/locale_controller.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../core/theme/app_spacing.dart';
@@ -39,7 +40,8 @@ class HomeScreen extends ConsumerWidget {
     final trips = ref.watch(tripsListProvider);
     final dashboard = ref.watch(dashboardProvider);
     final user = ref.watch(authControllerProvider).valueOrNull;
-    final offline = trips.hasError &&
+    final offline =
+        trips.hasError &&
         errorMessageFor(trips.error!, strings.t('state.offline'), '') ==
             strings.t('state.offline');
     final firstName = (user?.name ?? '').trim().split(RegExp(r'\s+')).first;
@@ -53,7 +55,8 @@ class HomeScreen extends ConsumerWidget {
             if (offline) OfflineBanner(message: strings.t('state.offline')),
             Expanded(
               child: trips.when(
-                loading: () => LoadingState(message: strings.t('state.loading')),
+                loading: () =>
+                    LoadingState(message: strings.t('state.loading')),
                 error: (error, _) => ErrorState(
                   message: errorMessageFor(
                     error,
@@ -88,11 +91,11 @@ class HomeScreen extends ConsumerWidget {
                     children: [
                       Appear(
                         child: PageHeader(
-                          title: strings.t(_greetingKey(), {
-                            'name': firstName,
-                          }),
-                          subtitle: DateFormat.MMMEd(locale.languageCode)
-                              .format(DateTime.now()),
+                          title: strings.t(_greetingKey(), {'name': firstName}),
+                          subtitle: latinDigits(
+                            DateFormat.MMMEd(locale.languageCode)
+                                .format(DateTime.now()),
+                          ),
                           subtitleAbove: true,
                           largeTitle: true,
                           extra: home.activeCount > 0
@@ -102,8 +105,9 @@ class HomeScreen extends ConsumerWidget {
                                     vertical: 6,
                                   ),
                                   decoration: BoxDecoration(
-                                    color: AppColors.white
-                                        .withValues(alpha: 0.16),
+                                    color: AppColors.white.withValues(
+                                      alpha: 0.16,
+                                    ),
                                     borderRadius: BorderRadius.circular(99),
                                   ),
                                   child: Text(
@@ -139,8 +143,7 @@ class HomeScreen extends ConsumerWidget {
                                   crossAxisAlignment:
                                       CrossAxisAlignment.stretch,
                                   children: [
-                                    if (current != null &&
-                                        waiting.isNotEmpty)
+                                    if (current != null && waiting.isNotEmpty)
                                       SectionLabel(
                                         label: strings.t('home.current_trip'),
                                       ),
@@ -173,8 +176,7 @@ class HomeScreen extends ConsumerWidget {
                                 ),
                               );
                               return SingleChildScrollView(
-                                physics:
-                                    const AlwaysScrollableScrollPhysics(),
+                                physics: const AlwaysScrollableScrollPhysics(),
                                 child: ConstrainedBox(
                                   constraints: BoxConstraints(
                                     minHeight: constraints.maxHeight,
