@@ -29,7 +29,6 @@ class PodFormScreen extends ConsumerStatefulWidget {
 }
 
 class _PodFormScreenState extends ConsumerState<PodFormScreen> {
-  final _receiver = TextEditingController();
   final _otp = TextEditingController();
   final _quantity = TextEditingController();
   final _notes = TextEditingController();
@@ -37,13 +36,11 @@ class _PodFormScreenState extends ConsumerState<PodFormScreen> {
   bool _seeded = false;
   bool _submitting = false;
   String? _error;
-  String? _receiverError;
   String? _otpError;
   String? _quantityError;
 
   @override
   void dispose() {
-    _receiver.dispose();
     _otp.dispose();
     _quantity.dispose();
     _notes.dispose();
@@ -88,14 +85,13 @@ class _PodFormScreenState extends ConsumerState<PodFormScreen> {
   Future<void> _submit() async {
     final strings = ref.read(stringsProvider);
     setState(() {
-      _receiverError = _receiver.text.trim().isEmpty ? strings.t('pod.required') : null;
       _otpError = _otp.text.trim().length != 6 ? strings.t('pod.otp_length') : null;
       _quantityError = double.tryParse(_quantity.text.trim()) == null
           ? strings.t('pod.qty_invalid')
           : null;
       _error = null;
     });
-    if (_receiverError != null || _otpError != null || _quantityError != null) {
+    if (_otpError != null || _quantityError != null) {
       return;
     }
 
@@ -110,7 +106,6 @@ class _PodFormScreenState extends ConsumerState<PodFormScreen> {
       }
       await ref.read(tripsRepositoryProvider).submitPod(
             id: widget.tripId,
-            receiverName: _receiver.text.trim(),
             otp: _otp.text.trim(),
             receivedQuantity: double.parse(_quantity.text.trim()),
             notes: _notes.text.trim(),
@@ -172,14 +167,6 @@ class _PodFormScreenState extends ConsumerState<PodFormScreen> {
           return ListView(
             padding: const EdgeInsets.all(AppSpacing.lg),
             children: [
-              AppTextField(
-                label: strings.t('pod.receiver'),
-                controller: _receiver,
-                textInputAction: TextInputAction.next,
-                errorText: _receiverError,
-                prefixIcon: Icons.person_outline_rounded,
-              ),
-              const SizedBox(height: AppSpacing.md),
               AppTextField(
                 label: strings.t('pod.otp'),
                 controller: _otp,

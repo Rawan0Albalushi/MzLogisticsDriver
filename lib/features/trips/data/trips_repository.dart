@@ -72,7 +72,6 @@ class TripsRepository {
 
   Future<void> submitPod({
     required int id,
-    required String receiverName,
     required String otp,
     required double receivedQuantity,
     String? notes,
@@ -81,7 +80,6 @@ class TripsRepository {
     required List<MultipartFile> photos,
   }) async {
     final form = FormData.fromMap({
-      'receiver_name': receiverName,
       'otp': otp,
       'received_quantity': receivedQuantity,
       if (notes != null && notes.isNotEmpty) 'notes': notes,
