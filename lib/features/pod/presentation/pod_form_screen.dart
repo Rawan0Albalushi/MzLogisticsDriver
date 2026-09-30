@@ -33,6 +33,8 @@ class _PodFormScreenState extends ConsumerState<PodFormScreen> {
   final _quantity = TextEditingController();
   final _notes = TextEditingController();
   final _photos = <XFile>[];
+  XFile? _invoice;
+  XFile? _weightTicket;
   bool _seeded = false;
   bool _submitting = false;
   String? _error;
@@ -64,6 +66,10 @@ class _PodFormScreenState extends ConsumerState<PodFormScreen> {
         _quantity.text = trip.plannedQuantity!.toString();
       }
     });
+  }
+
+  Future<XFile?> _pickImage(ImageSource source) {
+    return ImagePicker().pickImage(source: source, imageQuality: 70);
   }
 
   Future<void> _addPhoto(ImageSource source) async {
@@ -104,6 +110,12 @@ class _PodFormScreenState extends ConsumerState<PodFormScreen> {
           await MultipartFile.fromFile(file.path, filename: file.name),
         );
       }
+      final invoice = _invoice == null
+          ? null
+          : await MultipartFile.fromFile(_invoice!.path, filename: _invoice!.name);
+      final weightTicket = _weightTicket == null
+          ? null
+          : await MultipartFile.fromFile(_weightTicket!.path, filename: _weightTicket!.name);
       await ref.read(tripsRepositoryProvider).submitPod(
             id: widget.tripId,
             otp: _otp.text.trim(),
@@ -112,6 +124,8 @@ class _PodFormScreenState extends ConsumerState<PodFormScreen> {
             lat: location.fix?.lat,
             lng: location.fix?.lng,
             photos: photos,
+            invoice: invoice,
+            weightTicket: weightTicket,
           );
       ref.invalidate(tripDetailsProvider(widget.tripId));
       ref.invalidate(tripsListProvider);
@@ -278,6 +292,42 @@ class _PodFormScreenState extends ConsumerState<PodFormScreen> {
                   ),
                 ],
               ),
+              const SizedBox(height: AppSpacing.lg),
+              _DocumentField(
+                title: strings.t('pod.invoice'),
+                hint: strings.t('pod.invoice_hint'),
+                file: _invoice,
+                cameraLabel: strings.t('pod.camera'),
+                galleryLabel: strings.t('pod.gallery'),
+                removeLabel: strings.t('pod.remove'),
+                onCamera: () async {
+                  final file = await _pickImage(ImageSource.camera);
+                  if (file != null && mounted) setState(() => _invoice = file);
+                },
+                onGallery: () async {
+                  final file = await _pickImage(ImageSource.gallery);
+                  if (file != null && mounted) setState(() => _invoice = file);
+                },
+                onRemove: () => setState(() => _invoice = null),
+              ),
+              const SizedBox(height: AppSpacing.md),
+              _DocumentField(
+                title: strings.t('pod.weight_ticket'),
+                hint: strings.t('pod.weight_ticket_hint'),
+                file: _weightTicket,
+                cameraLabel: strings.t('pod.camera'),
+                galleryLabel: strings.t('pod.gallery'),
+                removeLabel: strings.t('pod.remove'),
+                onCamera: () async {
+                  final file = await _pickImage(ImageSource.camera);
+                  if (file != null && mounted) setState(() => _weightTicket = file);
+                },
+                onGallery: () async {
+                  final file = await _pickImage(ImageSource.gallery);
+                  if (file != null && mounted) setState(() => _weightTicket = file);
+                },
+                onRemove: () => setState(() => _weightTicket = null),
+              ),
               if (_error != null) ...[
                 const SizedBox(height: AppSpacing.md),
                 Text(
@@ -312,6 +362,95 @@ class _PodFormScreenState extends ConsumerState<PodFormScreen> {
               ),
             )
           : null,
+    );
+  }
+}
+
+class _DocumentField extends StatelessWidget {
+  const _DocumentField({
+    required this.title,
+    required this.hint,
+    required this.file,
+    required this.cameraLabel,
+    required this.galleryLabel,
+    required this.removeLabel,
+    required this.onCamera,
+    required this.onGallery,
+    required this.onRemove,
+  });
+
+  final String title;
+  final String hint;
+  final XFile? file;
+  final String cameraLabel;
+  final String galleryLabel;
+  final String removeLabel;
+  final VoidCallback onCamera;
+  final VoidCallback onGallery;
+  final VoidCallback onRemove;
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(title, style: AppText.title),
+        const SizedBox(height: 4),
+        Text(hint, style: AppText.label),
+        if (file != null) ...[
+          const SizedBox(height: 12),
+          Container(
+            width: double.infinity,
+            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+            decoration: BoxDecoration(
+              color: AppColors.white,
+              borderRadius: BorderRadius.circular(AppSpacing.radiusSm),
+              border: Border.all(color: AppColors.line),
+            ),
+            child: Row(
+              children: [
+                const Icon(Icons.description_outlined, color: AppColors.primary),
+                const SizedBox(width: 10),
+                Expanded(
+                  child: Text(
+                    file!.name,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: AppText.body,
+                  ),
+                ),
+                IconButton(
+                  tooltip: removeLabel,
+                  onPressed: onRemove,
+                  icon: const Icon(Icons.close_rounded, color: AppColors.muted),
+                ),
+              ],
+            ),
+          ),
+        ],
+        const SizedBox(height: 12),
+        Row(
+          children: [
+            Expanded(
+              child: AppButton(
+                label: cameraLabel,
+                tone: AppButtonTone.ghost,
+                icon: Icons.photo_camera_outlined,
+                onPressed: onCamera,
+              ),
+            ),
+            const SizedBox(width: 10),
+            Expanded(
+              child: AppButton(
+                label: galleryLabel,
+                tone: AppButtonTone.ghost,
+                icon: Icons.photo_library_outlined,
+                onPressed: onGallery,
+              ),
+            ),
+          ],
+        ),
+      ],
     );
   }
 }

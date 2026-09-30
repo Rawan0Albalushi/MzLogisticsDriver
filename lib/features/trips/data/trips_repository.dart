@@ -78,6 +78,8 @@ class TripsRepository {
     double? lat,
     double? lng,
     required List<MultipartFile> photos,
+    MultipartFile? invoice,
+    MultipartFile? weightTicket,
   }) async {
     final form = FormData.fromMap({
       'otp': otp,
@@ -88,6 +90,12 @@ class TripsRepository {
     });
     for (var index = 0; index < photos.length; index++) {
       form.files.add(MapEntry('photos[$index]', photos[index]));
+    }
+    if (invoice != null) {
+      form.files.add(MapEntry('invoice', invoice));
+    }
+    if (weightTicket != null) {
+      form.files.add(MapEntry('weight_ticket', weightTicket));
     }
     await _client.post<void>(
       ApiEndpoints.tripPod(id),

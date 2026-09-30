@@ -116,6 +116,14 @@ class TripFactsSheet extends StatelessWidget {
     if (plate != null && plate.isNotEmpty) {
       facts.add(_Fact(strings.t('trip.plate'), plate));
     }
+    final trailer = trip.trailerPlate?.trim();
+    if (trailer != null && trailer.isNotEmpty) {
+      facts.add(_Fact(strings.t('trip.trailer'), trailer));
+    }
+    final deliveryNote = trip.deliveryNoteNumber?.trim();
+    if (deliveryNote != null && deliveryNote.isNotEmpty) {
+      facts.add(_Fact(strings.t('trip.deliveryNote'), deliveryNote));
+    }
     final vehicle = truck == null ? null : _vehicleLine(truck);
     if (vehicle != null) {
       facts.add(_Fact(strings.t('trip.truck'), vehicle));

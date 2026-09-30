@@ -29,6 +29,8 @@ class Trip {
     this.otpCode,
     this.job,
     this.truck,
+    this.trailerPlate,
+    this.deliveryNoteNumber,
     this.proofOfDelivery,
   });
 
@@ -55,6 +57,8 @@ class Trip {
   final String? otpCode;
   final TransportJob? job;
   final Truck? truck;
+  final String? trailerPlate;
+  final String? deliveryNoteNumber;
   final ProofOfDelivery? proofOfDelivery;
 
   String get pickupLabel =>
@@ -94,6 +98,8 @@ class Trip {
       truck: readMap(json['truck']) != null
           ? Truck.fromJson(readMap(json['truck'])!)
           : null,
+      trailerPlate: readString(json['trailer_plate']),
+      deliveryNoteNumber: readString(json['delivery_note_number']),
       proofOfDelivery: readMap(json['proof_of_delivery']) != null
           ? ProofOfDelivery.fromJson(readMap(json['proof_of_delivery'])!)
           : null,
