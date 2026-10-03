@@ -34,13 +34,15 @@ class AuthRepository {
   }
 
   Future<User> activate({
-    required String token,
+    required String phone,
+    required String code,
     required String password,
   }) async {
     final envelope = await _client.post<Map<String, dynamic>>(
       ApiEndpoints.activateDriver,
       data: {
-        'token': token,
+        'phone': phone,
+        'code': code,
         'password': password,
         'password_confirmation': password,
       },

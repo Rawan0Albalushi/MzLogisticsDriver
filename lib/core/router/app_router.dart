@@ -45,9 +45,7 @@ final routerProvider = Provider<GoRouter>((ref) {
       ),
       GoRoute(
         path: '/activate',
-        builder: (context, state) => ActivateScreen(
-          initialToken: state.uri.queryParameters['token'],
-        ),
+        builder: (context, state) => const ActivateScreen(),
       ),
       GoRoute(
         path: '/trips/:id',

@@ -29,11 +29,13 @@ class AuthController extends AsyncNotifier<User?> {
   }
 
   Future<void> activate({
-    required String token,
+    required String phone,
+    required String code,
     required String password,
   }) async {
     final user = await ref.read(authRepositoryProvider).activate(
-          token: token,
+          phone: phone,
+          code: code,
           password: password,
         );
     state = AsyncData(user);

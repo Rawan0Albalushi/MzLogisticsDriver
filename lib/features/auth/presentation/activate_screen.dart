@@ -15,16 +15,15 @@ import '../../../shared/widgets/brand_mark.dart';
 import '../providers/auth_controller.dart';
 
 class ActivateScreen extends ConsumerStatefulWidget {
-  const ActivateScreen({super.key, this.initialToken});
-
-  final String? initialToken;
+  const ActivateScreen({super.key});
 
   @override
   ConsumerState<ActivateScreen> createState() => _ActivateScreenState();
 }
 
 class _ActivateScreenState extends ConsumerState<ActivateScreen> {
-  late final TextEditingController _token;
+  late final TextEditingController _phone;
+  late final TextEditingController _code;
   late final TextEditingController _password;
   late final TextEditingController _confirm;
   bool _submitting = false;
@@ -33,35 +32,32 @@ class _ActivateScreenState extends ConsumerState<ActivateScreen> {
   @override
   void initState() {
     super.initState();
-    _token = TextEditingController(text: _extractToken(widget.initialToken ?? ''));
+    _phone = TextEditingController();
+    _code = TextEditingController();
     _password = TextEditingController();
     _confirm = TextEditingController();
   }
 
   @override
   void dispose() {
-    _token.dispose();
+    _phone.dispose();
+    _code.dispose();
     _password.dispose();
     _confirm.dispose();
     super.dispose();
   }
 
-  String _extractToken(String raw) {
-    final value = raw.trim();
-    final uri = Uri.tryParse(value);
-    final fromQuery = uri?.queryParameters['token'];
-    if (fromQuery != null && fromQuery.isNotEmpty) {
-      return fromQuery;
-    }
-    return value;
-  }
-
   Future<void> _submit() async {
     if (_submitting) return;
     final strings = ref.read(stringsProvider);
-    final token = _extractToken(_token.text);
-    if (token.isEmpty) {
-      setState(() => _error = strings.t('activate.token_required'));
+    final phone = _phone.text.trim();
+    final code = _code.text.replaceAll(RegExp(r'\D'), '');
+    if (phone.isEmpty) {
+      setState(() => _error = strings.t('activate.phone_required'));
+      return;
+    }
+    if (code.length != 6) {
+      setState(() => _error = strings.t('activate.code_required'));
       return;
     }
     if (_password.text.length < 8) {
@@ -79,18 +75,24 @@ class _ActivateScreenState extends ConsumerState<ActivateScreen> {
     });
     try {
       await ref.read(authControllerProvider.notifier).activate(
-            token: token,
+            phone: phone,
+            code: code,
             password: _password.text,
           );
     } catch (error) {
       if (!mounted) return;
       HapticFeedback.heavyImpact();
+      final message = errorMessageFor(
+        error,
+        strings.t('state.offline'),
+        strings.t('activate.failed'),
+      );
       setState(() {
-        _error = errorMessageFor(
-          error,
-          strings.t('state.offline'),
-          strings.t('activate.failed'),
-        );
+        _error = message.toLowerCase().contains('too many')
+            ? strings.t('activate.locked')
+            : message == strings.t('state.offline')
+                ? message
+                : strings.t('activate.failed');
       });
     } finally {
       if (mounted) {
@@ -156,10 +158,23 @@ class _ActivateScreenState extends ConsumerState<ActivateScreen> {
                           crossAxisAlignment: CrossAxisAlignment.stretch,
                           children: [
                             AppTextField(
-                              label: strings.t('activate.token'),
-                              controller: _token,
+                              label: strings.t('activate.phone'),
+                              controller: _phone,
+                              keyboardType: TextInputType.phone,
                               textInputAction: TextInputAction.next,
-                              prefixIcon: Icons.link_rounded,
+                              prefixIcon: Icons.phone_outlined,
+                            ),
+                            const SizedBox(height: AppSpacing.md),
+                            AppTextField(
+                              label: strings.t('activate.code'),
+                              controller: _code,
+                              keyboardType: TextInputType.number,
+                              textInputAction: TextInputAction.next,
+                              prefixIcon: Icons.pin_outlined,
+                              inputFormatters: [
+                                FilteringTextInputFormatter.digitsOnly,
+                                LengthLimitingTextInputFormatter(6),
+                              ],
                             ),
                             const SizedBox(height: AppSpacing.md),
                             AppTextField(
