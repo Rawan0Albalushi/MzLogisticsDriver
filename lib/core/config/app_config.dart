@@ -1,9 +1,12 @@
+import 'package:flutter/foundation.dart';
+
 class AppConfig {
   const AppConfig._();
 
   static const String _apiBaseUrlFromEnv = String.fromEnvironment('API_BASE_URL');
   static const String devLanHost = String.fromEnvironment('DEV_LAN_HOST');
   static const int apiPort = 8000;
+  static const String lanApiHost = '192.168.100.94';
 
   /// Optional PC Wi-Fi IPv4 for a physical phone on the same network.
   /// USB debugging does not need this: run `adb reverse tcp:8000 tcp:8000`.
@@ -12,7 +15,14 @@ class AppConfig {
       return Uri.parse(_apiBaseUrlFromEnv).host;
     }
     if (devLanHost.isNotEmpty) return devLanHost;
-    return '192.168.100.197';
+    if (kIsWeb) {
+      final host = Uri.base.host;
+      if (host == 'localhost' || host == '127.0.0.1') {
+        return '127.0.0.1';
+      }
+      if (host.isNotEmpty) return host;
+    }
+    return lanApiHost;
   }
 
   static String get apiBaseUrl {
